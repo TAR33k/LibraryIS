@@ -17,7 +17,7 @@ namespace IS_za_biblioteku.Forms
         public Aktivne_posudbe()
         {
             InitializeComponent();
-            ConfigureDataGridView();
+            //ConfigureDataGridView();
             InitializeLayout();
             dgvAktivnePosudbe.CellFormatting += dgvAktivnePosudbe_CellFormatting;  // Dodajte ovo
             dgvAktivnePosudbe.CellContentClick += dgvAktivnePosudbe_CellContentClick;
@@ -39,6 +39,7 @@ namespace IS_za_biblioteku.Forms
         {
             // Poziv funkcije za učitavanje podataka
             UcitajPodatke();
+            ConfigureDataGridView();
             // Dodavanje opcija u ComboBox
             cmbStatus.Items.Add("Sve");
             cmbStatus.Items.Add("Aktivna");
@@ -332,27 +333,24 @@ namespace IS_za_biblioteku.Forms
         }
         private void ConfigureDataGridView()
         {
-            if (dgvAktivnePosudbe != null) // Provjerite da li je dgvAktivnePosudbe inicijalizovan
+            dgvAktivnePosudbe.AutoGenerateColumns = false;
+            dgvAktivnePosudbe.BackgroundColor = Color.White;
+            dgvAktivnePosudbe.BorderStyle = BorderStyle.None;
+            dgvAktivnePosudbe.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvAktivnePosudbe.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                dgvAktivnePosudbe.BackgroundColor = Color.White;
-                dgvAktivnePosudbe.BorderStyle = BorderStyle.None;
-                dgvAktivnePosudbe.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                dgvAktivnePosudbe.AutoGenerateColumns = false;
-                dgvAktivnePosudbe.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-                {
-                    BackColor = Color.OrangeRed,
-                    ForeColor = Color.White,
-                    Font = new Font("Segoe UI", 10, FontStyle.Bold)
-                };
-                dgvAktivnePosudbe.DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    BackColor = Color.White,
-                    ForeColor = Color.Black,
-                    SelectionBackColor = Color.LightCoral,
-                    SelectionForeColor = Color.White
-                };
-                dgvAktivnePosudbe.RowTemplate.Height = 30;
-            }
+                BackColor = Color.OrangeRed,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            dgvAktivnePosudbe.DefaultCellStyle = new DataGridViewCellStyle
+            {
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                SelectionBackColor = Color.LightCoral,
+                SelectionForeColor = Color.White
+            };
+            dgvAktivnePosudbe.RowTemplate.Height = 30;
         }
 
         private void dgvAktivnePosudbe_CellContentClick(object sender, DataGridViewCellEventArgs e)

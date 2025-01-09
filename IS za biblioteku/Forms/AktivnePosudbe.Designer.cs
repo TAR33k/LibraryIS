@@ -28,11 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Aktivne_posudbe));
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Aktivne_posudbe));
             this.tbNaziv = new MetroFramework.Controls.MetroTextBox();
             this.cmbStatus = new MetroFramework.Controls.MetroComboBox();
+            this.metroLabel1 = new MetroFramework.Controls.MetroLabel();
+            this.metroLabel2 = new MetroFramework.Controls.MetroLabel();
+            this.metroButton1 = new MetroFramework.Controls.MetroButton();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.dgvAktivnePosudbe = new System.Windows.Forms.DataGridView();
             this.Korisnik = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Knjiga = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -40,12 +44,8 @@
             this.DatumVracanja = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Status = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Dugme = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.metroLabel1 = new MetroFramework.Controls.MetroLabel();
-            this.metroLabel2 = new MetroFramework.Controls.MetroLabel();
-            this.metroButton1 = new MetroFramework.Controls.MetroButton();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvAktivnePosudbe)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvAktivnePosudbe)).BeginInit();
             this.SuspendLayout();
             // 
             // tbNaziv
@@ -78,101 +78,6 @@
             this.cmbStatus.StyleManager = null;
             this.cmbStatus.TabIndex = 1;
             this.cmbStatus.Theme = MetroFramework.MetroThemeStyle.Light;
-            // 
-            // dgvAktivnePosudbe
-            // 
-            this.dgvAktivnePosudbe.AllowUserToAddRows = false;
-            this.dgvAktivnePosudbe.AllowUserToDeleteRows = false;
-            this.dgvAktivnePosudbe.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvAktivnePosudbe.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.dgvAktivnePosudbe.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvAktivnePosudbe.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Korisnik,
-            this.Knjiga,
-            this.DatumPosudbe,
-            this.DatumVracanja,
-            this.Status,
-            this.Dugme});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgvAktivnePosudbe.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvAktivnePosudbe.Location = new System.Drawing.Point(32, 264);
-            this.dgvAktivnePosudbe.Name = "dgvAktivnePosudbe";
-            this.dgvAktivnePosudbe.ReadOnly = true;
-            this.dgvAktivnePosudbe.RowHeadersWidth = 51;
-            this.dgvAktivnePosudbe.RowTemplate.Height = 24;
-            this.dgvAktivnePosudbe.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvAktivnePosudbe.Size = new System.Drawing.Size(1183, 327);
-            this.dgvAktivnePosudbe.TabIndex = 2;
-            // 
-            // Korisnik
-            // 
-            this.Korisnik.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Korisnik.DataPropertyName = "Korisnik";
-            this.Korisnik.HeaderText = "Ime i prezime korisnika";
-            this.Korisnik.MinimumWidth = 6;
-            this.Korisnik.Name = "Korisnik";
-            this.Korisnik.ReadOnly = true;
-            // 
-            // Knjiga
-            // 
-            this.Knjiga.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Knjiga.DataPropertyName = "Knjiga";
-            this.Knjiga.HeaderText = "Naziv knjige";
-            this.Knjiga.MinimumWidth = 6;
-            this.Knjiga.Name = "Knjiga";
-            this.Knjiga.ReadOnly = true;
-            // 
-            // DatumPosudbe
-            // 
-            this.DatumPosudbe.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.DatumPosudbe.DataPropertyName = "DatumPosudbe";
-            this.DatumPosudbe.HeaderText = "Datum posudbe";
-            this.DatumPosudbe.MinimumWidth = 6;
-            this.DatumPosudbe.Name = "DatumPosudbe";
-            this.DatumPosudbe.ReadOnly = true;
-            // 
-            // DatumVracanja
-            // 
-            this.DatumVracanja.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.DatumVracanja.DataPropertyName = "DatumVracanja";
-            this.DatumVracanja.HeaderText = "Datum vraćanja";
-            this.DatumVracanja.MinimumWidth = 6;
-            this.DatumVracanja.Name = "DatumVracanja";
-            this.DatumVracanja.ReadOnly = true;
-            // 
-            // Status
-            // 
-            this.Status.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Status.DataPropertyName = "Status";
-            this.Status.HeaderText = "Status posudbe";
-            this.Status.MinimumWidth = 6;
-            this.Status.Name = "Status";
-            this.Status.ReadOnly = true;
-            // 
-            // Dugme
-            // 
-            this.Dugme.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Dugme.HeaderText = "";
-            this.Dugme.MinimumWidth = 6;
-            this.Dugme.Name = "Dugme";
-            this.Dugme.ReadOnly = true;
-            this.Dugme.Text = "Evidentiraj vraćanje";
-            this.Dugme.UseColumnTextForButtonValue = true;
             // 
             // metroLabel1
             // 
@@ -231,16 +136,103 @@
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
             // 
+            // dgvAktivnePosudbe
+            // 
+            this.dgvAktivnePosudbe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Arial Narrow", 13.8F, System.Drawing.FontStyle.Bold);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvAktivnePosudbe.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvAktivnePosudbe.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvAktivnePosudbe.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Korisnik,
+            this.Knjiga,
+            this.DatumPosudbe,
+            this.DatumVracanja,
+            this.Status,
+            this.Dugme});
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Arial Narrow", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvAktivnePosudbe.DefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvAktivnePosudbe.Location = new System.Drawing.Point(32, 264);
+            this.dgvAktivnePosudbe.Name = "dgvAktivnePosudbe";
+            this.dgvAktivnePosudbe.RowHeadersWidth = 51;
+            this.dgvAktivnePosudbe.RowTemplate.Height = 30;
+            this.dgvAktivnePosudbe.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvAktivnePosudbe.Size = new System.Drawing.Size(1982, 201);
+            this.dgvAktivnePosudbe.TabIndex = 2;
+            // 
+            // Korisnik
+            // 
+            this.Korisnik.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Korisnik.DataPropertyName = "Korisnik";
+            this.Korisnik.HeaderText = "Ime i prezime korisnika";
+            this.Korisnik.MinimumWidth = 6;
+            this.Korisnik.Name = "Korisnik";
+            // 
+            // Knjiga
+            // 
+            this.Knjiga.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Knjiga.DataPropertyName = "Knjiga";
+            this.Knjiga.HeaderText = "Naziv knjige";
+            this.Knjiga.MinimumWidth = 6;
+            this.Knjiga.Name = "Knjiga";
+            // 
+            // DatumPosudbe
+            // 
+            this.DatumPosudbe.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.DatumPosudbe.DataPropertyName = "DatumPosudbe";
+            this.DatumPosudbe.HeaderText = "Datum posudbe";
+            this.DatumPosudbe.MinimumWidth = 6;
+            this.DatumPosudbe.Name = "DatumPosudbe";
+            // 
+            // DatumVracanja
+            // 
+            this.DatumVracanja.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.DatumVracanja.DataPropertyName = "DatumVracanja";
+            this.DatumVracanja.HeaderText = "Datum vraćanja";
+            this.DatumVracanja.MinimumWidth = 6;
+            this.DatumVracanja.Name = "DatumVracanja";
+            // 
+            // Status
+            // 
+            this.Status.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Status.DataPropertyName = "Status";
+            this.Status.HeaderText = "Status";
+            this.Status.MinimumWidth = 6;
+            this.Status.Name = "Status";
+            // 
+            // Dugme
+            // 
+            this.Dugme.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Dugme.DataPropertyName = "Dugme";
+            this.Dugme.HeaderText = "";
+            this.Dugme.MinimumWidth = 6;
+            this.Dugme.Name = "Dugme";
+            this.Dugme.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Dugme.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.Dugme.Text = "Evidentiraj vraćanje";
+            this.Dugme.UseColumnTextForButtonValue = true;
+            // 
             // Aktivne_posudbe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1227, 557);
+            this.Controls.Add(this.dgvAktivnePosudbe);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.metroButton1);
             this.Controls.Add(this.metroLabel2);
             this.Controls.Add(this.metroLabel1);
-            this.Controls.Add(this.dgvAktivnePosudbe);
             this.Controls.Add(this.cmbStatus);
             this.Controls.Add(this.tbNaziv);
             this.Name = "Aktivne_posudbe";
@@ -248,8 +240,8 @@
             this.Text = "Aktivne posudbe";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.Aktivne_posudbe_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvAktivnePosudbe)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvAktivnePosudbe)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -259,6 +251,10 @@
 
         private MetroFramework.Controls.MetroTextBox tbNaziv;
         private MetroFramework.Controls.MetroComboBox cmbStatus;
+        private MetroFramework.Controls.MetroLabel metroLabel1;
+        private MetroFramework.Controls.MetroLabel metroLabel2;
+        private MetroFramework.Controls.MetroButton metroButton1;
+        private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.DataGridView dgvAktivnePosudbe;
         private System.Windows.Forms.DataGridViewTextBoxColumn Korisnik;
         private System.Windows.Forms.DataGridViewTextBoxColumn Knjiga;
@@ -266,9 +262,5 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn DatumVracanja;
         private System.Windows.Forms.DataGridViewTextBoxColumn Status;
         private System.Windows.Forms.DataGridViewButtonColumn Dugme;
-        private MetroFramework.Controls.MetroLabel metroLabel1;
-        private MetroFramework.Controls.MetroLabel metroLabel2;
-        private MetroFramework.Controls.MetroButton metroButton1;
-        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
