@@ -215,7 +215,7 @@ namespace IS_za_biblioteku
             });
 
             var random = new Random();
-            var pastDates = Enumerable.Range(1, 5).Select(x =>
+            var pastDates = Enumerable.Range(1, 4).Select(x =>
                 DateTime.Now.AddDays(-random.Next(30, 365))).ToList();
 
             foreach (var date in pastDates)

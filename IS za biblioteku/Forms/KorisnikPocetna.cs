@@ -2,7 +2,11 @@
 using Microsoft.SqlServer.Server;
 using System;
 using System.Drawing;
+using System.Drawing.Text;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace IS_za_biblioteku.Forms
@@ -13,58 +17,193 @@ namespace IS_za_biblioteku.Forms
         private Korisnik trenutniKorisnik;
         private Panel mainContentPanel;
         private Panel topPanel;
+        private readonly PrivateFontCollection privateFontCollection;
+        private readonly Font TitleFont;
+        private readonly Font RegularFont;
+        private readonly Font BoldFont;
+
+        private readonly Color PrimaryColor = Color.FromArgb(255, 140, 0);    // Orange
+        private readonly Color SecondaryColor = Color.White;
+        private readonly Color AccentColor = Color.FromArgb(240, 240, 240);   // Light Gray
+        private readonly Color TextColor = Color.FromArgb(51, 51, 51);        // Dark Gray
+        private readonly Color HoverColor = Color.FromArgb(255, 160, 20);     // Lighter Orange
 
         public KorisnikPocetna(string korisnickoIme)
         {
             InitializeComponent();
+
+            // Initialize fonts
+            privateFontCollection = new PrivateFontCollection();
+            try
+            {
+                string fontPath = Path.Combine(Application.StartupPath, "Resources");
+
+                // Load Regular font
+                string regularFontPath = Path.Combine(fontPath, "Poppins-Regular.ttf");
+                string boldFontPath = Path.Combine(fontPath, "Poppins-Bold.ttf");
+
+
+                if (File.Exists(regularFontPath))
+                {
+                    privateFontCollection.AddFontFile(regularFontPath);
+                }
+
+                if (File.Exists(boldFontPath))
+                {
+                    privateFontCollection.AddFontFile(boldFontPath);
+                }
+
+                // Initialize font objects
+                if (privateFontCollection.Families.Length > 0)
+                {
+                    TitleFont = new Font(privateFontCollection.Families[0], 24, FontStyle.Bold);
+                    RegularFont = new Font(privateFontCollection.Families[0], 12, FontStyle.Regular);
+                    BoldFont = new Font(privateFontCollection.Families[0], 10, FontStyle.Bold);
+                }
+                else
+                {
+                    throw new Exception("No fonts were loaded successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading custom fonts: {ex.Message}\nFalling back to system fonts.");
+                // Fallback fonts
+                TitleFont = new Font("Segoe UI", 24, FontStyle.Bold);
+                RegularFont = new Font("Segoe UI", 12, FontStyle.Regular);
+                BoldFont = new Font("Segoe UI", 10, FontStyle.Bold);
+            }
+
             this.korisnickoIme = korisnickoIme;
-            this.Size = new Size(1200, 800);
+            this.Size = new Size(1200, 820);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.Text = "Biblioteka";
             PodaciBiblioteke.PopuniPodatke();
             trenutniKorisnik = PodaciBiblioteke.Korisnici[0];
+
             InitializeLayout();
         }
 
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+
+            // Clean up fonts
+            if (privateFontCollection != null)
+            {
+                privateFontCollection.Dispose();
+            }
+
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                Application.Exit();
+            }
+        }
         private void InitializeLayout()
         {
-            // Top Panel
+            // Top Panel with fixed height and padding
             topPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 60,
-                BackColor = Color.WhiteSmoke
+                Height = 70,
+                BackColor = PrimaryColor,
+                Padding = new Padding(20, 0, 20, 0)
             };
+
+            // Title with logo/icon
+            var titleContainer = new Panel
+            {
+                AutoSize = true,
+                Height = 70,
+                BackColor = Color.Transparent,
+                Dock = DockStyle.Left
+            };
+
+            // Create and configure the icon
+            var iconPictureBox = new PictureBox
+            {
+                Size = new Size(48, 48),
+                Location = new Point(0, 10),
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent
+            };
+
+            try
+            {
+                // Load the library icon
+                iconPictureBox.Image = Image.FromFile("Resources/library-icon.png");
+            }
+            catch
+            {
+                // Create a default icon if the image file is not found
+                var defaultIcon = new Bitmap(32, 32);
+                using (var g = Graphics.FromImage(defaultIcon))
+                {
+                    g.Clear(PrimaryColor);
+                    g.DrawString("B", new Font("Arial", 20, FontStyle.Bold),
+                                new SolidBrush(SecondaryColor), new Point(8, 2));
+                }
+                iconPictureBox.Image = defaultIcon;
+            }
 
             var titleLabel = new Label
             {
                 Text = "Biblioteka",
-                Font = new Font("Arial", 24, FontStyle.Bold),
+                Font = TitleFont,
+                ForeColor = SecondaryColor,
                 AutoSize = true,
-                Location = new Point(20, 12)
+                Location = new Point(47, 12) // Positioned right after the icon
+            };
+
+            titleContainer.Controls.AddRange(new Control[] { iconPictureBox, titleLabel });
+
+            // User info and logout container
+            var userContainer = new Panel
+            {
+                AutoSize = true,
+                Height = 70,
+                BackColor = Color.Transparent,
+                Dock = DockStyle.Right,
+                Padding = new Padding(0, 15, 0, 15)
             };
 
             var userLabel = new Label
             {
                 Text = trenutniKorisnik.Ime + " " + trenutniKorisnik.Prezime,
-                Font = new Font("Arial", 12),
+                Font = RegularFont,
+                ForeColor = SecondaryColor,
                 AutoSize = true,
-                Location = new Point(this.Width - 250, 20),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right
+                Location = new Point(0, 22)
             };
 
             var logoutButton = new Button
             {
                 Text = "Odjavi se",
-                Size = new Size(100, 30),
-                Location = new Point(this.Width - 120, 15),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                BackColor = Color.IndianRed,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Size = new Size(120, 35),
+                Location = new Point(userLabel.Right + 38, 18),
+                BackColor = SecondaryColor,
+                ForeColor = PrimaryColor,
+                FlatStyle = FlatStyle.Flat,
+                Font = BoldFont,
+                Cursor = Cursors.Hand
             };
-            logoutButton.Click += (s, e) => OdjaviSe();
 
-            topPanel.Controls.AddRange(new Control[] { titleLabel, userLabel, logoutButton });
+            // Remove border and add hover effects
+            logoutButton.FlatAppearance.BorderSize = 0;
+            logoutButton.Click += (s, e) => OdjaviSe();
+            logoutButton.MouseEnter += (s, e) => {
+                logoutButton.BackColor = AccentColor;
+                logoutButton.ForeColor = PrimaryColor;
+            };
+            logoutButton.MouseLeave += (s, e) => {
+                logoutButton.BackColor = SecondaryColor;
+                logoutButton.ForeColor = PrimaryColor;
+            };
+
+            userContainer.Controls.AddRange(new Control[] { userLabel, logoutButton });
+
+            // Add containers to top panel
+            topPanel.Controls.AddRange(new Control[] { titleContainer, userContainer });
             this.Controls.Add(topPanel);
 
             // Main Content Panel
@@ -72,12 +211,12 @@ namespace IS_za_biblioteku.Forms
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(20),
-                BackColor = Color.White
+                BackColor = SecondaryColor,
             };
             this.Controls.Add(mainContentPanel);
 
             InitializeMenu();
-            ShowDashboard(); // Show dashboard by default
+            ShowDashboard();
         }
 
         private void InitializeMenu()
@@ -85,38 +224,141 @@ namespace IS_za_biblioteku.Forms
             var menuPanel = new Panel
             {
                 Dock = DockStyle.Left,
-                Width = 200,
-                BackColor = Color.FromArgb(51, 51, 76)
+                Width = 250,
+                BackColor = TextColor,
+                Padding = new Padding(0)
             };
 
+            // Add spacer panel that matches the top panel height
+            var spacerPanel = new Panel
+            {
+                Height = topPanel.Height,
+                Width = 250,
+                BackColor = TextColor,
+                Dock = DockStyle.Top
+            };
+            menuPanel.Controls.Add(spacerPanel);
+
+            // Define menu items with their icons
             var menuItems = new[]
             {
-                ("Početna", "pocetna"),
-                ("Pretraga knjiga", "pretraga"),
-                ("Moje posudbe", "posudbe"),
-                ("Moj profil", "profil")
-            };
+        ("Početna", "pocetna", "home.png", "🏠"),
+        ("Pretraga knjiga", "pretraga", "search.png", "🔍"),
+        ("Moje posudbe", "posudbe", "books.png", "📚"),
+        ("Moj profil", "profil", "profile.png", "👤")
+    };
 
-            int buttonY = 20;
-            foreach (var (text, tag) in menuItems)
+            Panel firstButtonPanel = null;
+            Button firstButton = null;
+            int buttonY = spacerPanel.Height;
+            foreach (var (text, tag, iconFile, fallbackIcon) in menuItems)
             {
+                // Rest of your menu item creation code remains the same
+                var buttonPanel = new Panel
+                {
+                    Size = new Size(250, 60),
+                    Location = new Point(0, buttonY),
+                    BackColor = Color.Transparent,
+                    Cursor = Cursors.Hand
+                };
+
+                var iconLabel = new Label
+                {
+                    AutoSize = false,
+                    Size = new Size(30, 30), // Larger icon size
+                    Location = new Point(25, 15), // Adjusted position
+                    Text = fallbackIcon,
+                    Font = new Font("Segoe UI Emoji", 14), // Larger font for emoji
+                    ForeColor = SecondaryColor,
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+
+                try
+                {
+                    string iconPath = Path.Combine(Application.StartupPath, "Resources", iconFile);
+                    if (File.Exists(iconPath))
+                    {
+                        var icon = new PictureBox
+                        {
+                            Size = new Size(30, 30), // Larger icon size
+                            Location = new Point(25, 15), // Adjusted position
+                            SizeMode = PictureBoxSizeMode.StretchImage,
+                            Image = Image.FromFile(iconPath),
+                            BackColor = Color.Transparent
+                        };
+                        buttonPanel.Controls.Add(icon);
+                    }
+                    else
+                    {
+                        buttonPanel.Controls.Add(iconLabel);
+                    }
+                }
+                catch
+                {
+                    buttonPanel.Controls.Add(iconLabel);
+                }
+
                 var button = new Button
                 {
                     Text = text,
                     Tag = tag,
-                    Size = new Size(180, 40),
-                    Location = new Point(10, buttonY),
+                    Size = new Size(185, 60), // Full height of panel
+                    Location = new Point(65, 0), // Adjusted position
                     FlatStyle = FlatStyle.Flat,
-                    ForeColor = Color.White,
-                    Font = new Font("Arial", 12),
+                    ForeColor = SecondaryColor,
+                    Font = RegularFont, // Using the custom font
                     TextAlign = ContentAlignment.MiddleLeft,
-                    Padding = new Padding(10, 0, 0, 0)
+                    BackColor = Color.Transparent,
+                    Cursor = Cursors.Hand
                 };
 
                 button.FlatAppearance.BorderSize = 0;
+                button.FlatAppearance.MouseOverBackColor = Color.Transparent; // Remove default hover
                 button.Click += MenuItem_Click;
-                menuPanel.Controls.Add(button);
-                buttonY += 50;
+
+                buttonPanel.Controls.Add(button);
+                menuPanel.Controls.Add(buttonPanel);
+
+                if (tag == "pocetna")
+                {
+                    firstButtonPanel = buttonPanel;
+                    firstButton = button;
+                }
+
+                buttonY += 60;
+
+                // Hover effect for the entire panel
+                EventHandler mouseEnter = (s, e) => {
+                    if (button.BackColor != PrimaryColor) // If not selected
+                    {
+                        buttonPanel.BackColor = HoverColor;
+                        button.BackColor = HoverColor;
+                        foreach (Control c in buttonPanel.Controls)
+                        {
+                            if (c is PictureBox || c is Label)
+                                c.BackColor = HoverColor;
+                        }
+                    }
+                };
+
+                EventHandler mouseLeave = (s, e) => {
+                    if (button.BackColor != PrimaryColor) // If not selected
+                    {
+                        buttonPanel.BackColor = Color.Transparent;
+                        button.BackColor = Color.Transparent;
+                        foreach (Control c in buttonPanel.Controls)
+                        {
+                            if (c is PictureBox || c is Label)
+                                c.BackColor = Color.Transparent;
+                        }
+                    }
+                };
+
+                // Apply hover events to both panel and button
+                buttonPanel.MouseEnter += mouseEnter;
+                buttonPanel.MouseLeave += mouseLeave;
+                button.MouseEnter += mouseEnter;
+                button.MouseLeave += mouseLeave;
             }
 
             this.Controls.Add(menuPanel);
@@ -125,27 +367,69 @@ namespace IS_za_biblioteku.Forms
                 this.ClientSize.Width - menuPanel.Width,
                 this.ClientSize.Height - topPanel.Height
             );
+
+            // Apply selected styling to home tab
+            if (firstButtonPanel != null && firstButton != null)
+            {
+                firstButtonPanel.BackColor = PrimaryColor;
+                firstButton.BackColor = PrimaryColor;
+                firstButton.ForeColor = SecondaryColor;
+                foreach (Control c in firstButtonPanel.Controls)
+                {
+                    if (c is PictureBox || c is Label)
+                        c.BackColor = PrimaryColor;
+                }
+                ShowDashboard();
+            }
         }
 
         private void MenuItem_Click(object sender, EventArgs e)
         {
-            var button = sender as Button;
-            if (button?.Parent != null)
+            Button clickedButton;
+            Panel buttonPanel;
+
+            if (sender is Button btn)
             {
-                // Reset all button colors
-                foreach (Control ctrl in button.Parent.Controls)
+                clickedButton = btn;
+                buttonPanel = btn.Parent as Panel;
+            }
+            else if (sender is Panel pnl)
+            {
+                buttonPanel = pnl;
+                clickedButton = pnl.Controls.OfType<Button>().FirstOrDefault();
+            }
+            else return;
+
+            if (buttonPanel?.Parent is Panel menuPanel)
+            {
+                // Reset all button panels
+                foreach (Control ctrl in menuPanel.Controls)
                 {
-                    if (ctrl is Button btn)
+                    if (ctrl is Panel panel)
                     {
-                        btn.BackColor = Color.FromArgb(51, 51, 76);
+                        panel.BackColor = Color.Transparent;
+                        foreach (Control c in panel.Controls)
+                        {
+                            c.BackColor = Color.Transparent;
+                            if (c is Button b)
+                                b.ForeColor = SecondaryColor;
+                        }
                     }
                 }
 
                 // Highlight selected button
-                button.BackColor = Color.FromArgb(71, 71, 96);
+                buttonPanel.BackColor = PrimaryColor;
+                clickedButton.BackColor = PrimaryColor;
+                clickedButton.ForeColor = SecondaryColor;
+                foreach (Control c in buttonPanel.Controls)
+                {
+                    if (c is PictureBox || c is Label)
+                        c.BackColor = PrimaryColor;
+                }
+
                 mainContentPanel.Controls.Clear();
 
-                switch (button.Tag.ToString())
+                switch (clickedButton.Tag.ToString())
                 {
                     case "pocetna":
                         ShowDashboard();
@@ -168,55 +452,164 @@ namespace IS_za_biblioteku.Forms
             var dashboardPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                AutoScroll = true,
-                Padding = new Padding(20)
+                AutoScroll = false,
+                Padding = new Padding(30),
+                BackColor = SecondaryColor
+            };
+
+            // Welcome section with icon
+            var welcomeSection = new Panel
+            {
+                AutoSize = true,
+                Dock = DockStyle.Top,
+                Padding = new Padding(0, 0, 0, 30),
             };
 
             var welcomeLabel = new Label
             {
-                Text = $"Dobro došli, {trenutniKorisnik.Ime}!",
-                Font = new Font("Arial", 24, FontStyle.Bold),
+                Text = $"Dobrodošli, {trenutniKorisnik.Ime}!",
+                Font = TitleFont,
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, 0)
+                Location = new Point(0, 65)
             };
 
+            // Membership card with modern design
             var membershipPanel = new Panel
             {
-                Location = new Point(0, welcomeLabel.Bottom + 20),
-                Size = new Size(400, 100),
-                BackColor = trenutniKorisnik.Aktivni ? Color.FromArgb(200, 255, 200) : Color.FromArgb(255, 200, 200)
+                Size = new Size(400, 120),
+                Location = new Point(0, welcomeLabel.Bottom + 35),
+                BackColor = trenutniKorisnik.Aktivni ? Color.FromArgb(240, 249, 255) : Color.FromArgb(255, 245, 245)
             };
 
-            var membershipLabel = new Label
+            // Add shadow effect to membership panel
+            membershipPanel.Paint += (s, e) =>
             {
-                Text = $"Status članarine: {(trenutniKorisnik.Aktivni ? "Aktivna" : "Neaktivna")}\n" +
-                      $"Tip članarine: {trenutniKorisnik.Clanarina.Naziv}\n" +
-                      $"Datum isteka: {trenutniKorisnik.DatumIsteka:dd.MM.yyyy}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 10),
-                AutoSize = true
+                var shadowColor = Color.FromArgb(20, 0, 0, 0);
+                using (var brush = new SolidBrush(shadowColor))
+                {
+                    e.Graphics.FillRectangle(brush, new Rectangle(3, 3, membershipPanel.Width - 3, membershipPanel.Height - 3));
+                }
             };
-            membershipPanel.Controls.Add(membershipLabel);
+
+            var statusIcon = new Label
+            {
+                Text = trenutniKorisnik.Aktivni ? "✓" : "!",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = trenutniKorisnik.Aktivni ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(20, 47),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            var membershipTitle = new Label
+            {
+                Text = "Status članarine",
+                Font = BoldFont,
+                ForeColor = TextColor,
+                Location = new Point(60, 20),
+                AutoSize = true,
+                BackColor = Color.Transparent // Make background transparent
+            };
+
+            var membershipStatus = new Label
+            {
+                Text = trenutniKorisnik.Aktivni ? "Aktivna" : "Neaktivna",
+                Font = RegularFont,
+                ForeColor = trenutniKorisnik.Aktivni ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(60, membershipTitle.Bottom + 8), // Increased spacing
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            var membershipType = new Label
+            {
+                Text = trenutniKorisnik.Clanarina.Naziv,
+                Font = RegularFont,
+                ForeColor = TextColor,
+                Location = new Point(60, membershipStatus.Bottom + 8), // Increased spacing
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            var expiryDate = new Label
+            {
+                Text = $"Ističe: {trenutniKorisnik.DatumIsteka:dd.MM.yyyy}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(membershipPanel.Width - 180, 20), // Adjusted position
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            // Update the membership panel size to better fit the content
+            membershipPanel.Size = new Size(400, membershipType.Bottom + 20);
+
+            membershipPanel.Controls.AddRange(new Control[]
+            {
+        statusIcon,
+        membershipTitle,
+        membershipStatus,
+        membershipType,
+        expiryDate
+            });
+
+            // Current books section with divider
+            var divider = new Panel
+            {
+                Height = 1,
+                BackColor = Color.FromArgb(229, 231, 235), // Light gray divider
+                Dock = DockStyle.Top,
+                Margin = new Padding(0, 40, 0, 40)
+            };
 
             var borrowedBooksLabel = new Label
             {
-                Text = "Trenutno posuđene knjige:",
-                Font = new Font("Arial", 14, FontStyle.Bold),
+                Text = "Trenutno posuđene knjige",
+                Font = new Font(TitleFont.FontFamily, 18, FontStyle.Bold),
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, membershipPanel.Bottom + 20)
+                Location = new Point(0, membershipPanel.Bottom + 40)
             };
 
             var borrowedBooksPanel = new FlowLayoutPanel
             {
                 FlowDirection = FlowDirection.TopDown,
                 AutoSize = true,
-                Location = new Point(0, borrowedBooksLabel.Bottom + 10),
-                Width = mainContentPanel.Width - 60
+                Location = new Point(0, borrowedBooksLabel.Bottom + 20),
+                Width = mainContentPanel.Width - 60,
+                WrapContents = false
             };
 
-            foreach (var knjiga in trenutniKorisnik.PosudjeneKnjige)
+            // No books message
+            if (!trenutniKorisnik.PosudjeneKnjige.Any())
             {
-                borrowedBooksPanel.Controls.Add(CreateBookPanel(knjiga));
+                var noBooksPanel = new Panel
+                {
+                    Size = new Size(borrowedBooksPanel.Width, 100),
+                    BackColor = AccentColor,
+                    Margin = new Padding(0, 10, 0, 10)
+                };
+
+                var noBooksLabel = new Label
+                {
+                    Text = "Trenutno nemate posuđenih knjiga",
+                    Font = RegularFont,
+                    ForeColor = Color.FromArgb(107, 114, 128),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.Transparent
+                };
+
+                noBooksPanel.Controls.Add(noBooksLabel);
+                borrowedBooksPanel.Controls.Add(noBooksPanel);
+            }
+            else
+            {
+                foreach (var knjiga in trenutniKorisnik.PosudjeneKnjige)
+                {
+                    borrowedBooksPanel.Controls.Add(CreateBorrowedBookPanel(knjiga));
+                }
             }
 
             dashboardPanel.Controls.AddRange(new Control[]
@@ -232,36 +625,50 @@ namespace IS_za_biblioteku.Forms
             var popularBooksSection = new Panel
             {
                 AutoSize = true,
-                Location = new Point(0, borrowedBooksPanel.Bottom + 30),
+                Location = new Point(0, borrowedBooksPanel.Bottom + 20),
                 Width = mainContentPanel.Width - 60
+            };
+
+            // Section title with subtitle
+            var popularBooksHeader = new Panel
+            {
+                AutoSize = true,
+                Width = popularBooksSection.Width,
+                Padding = new Padding(0, 0, 0, 0)
             };
 
             var popularBooksLabel = new Label
             {
                 Text = "Popularne knjige",
-                Font = new Font("Arial", 18, FontStyle.Bold),
+                Font = new Font(TitleFont.FontFamily, 18, FontStyle.Bold),
+                ForeColor = TextColor,
                 AutoSize = true
             };
 
+            popularBooksHeader.Controls.AddRange(new Control[] { popularBooksLabel });
+
+            // Carousel container
             var carouselPanel = new Panel
             {
                 AutoScroll = true,
                 Width = mainContentPanel.Width - 60,
-                Height = 280,
-                Location = new Point(0, popularBooksLabel.Bottom + 15),
-                BackColor = Color.White
+                Height = 250,
+                Location = new Point(0, popularBooksLabel.Bottom),
+                BackColor = SecondaryColor,
+                Padding = new Padding(40, 0, 40, 0)
             };
 
             var booksContainer = new FlowLayoutPanel
             {
                 FlowDirection = FlowDirection.LeftToRight,
                 AutoSize = true,
-                Width = mainContentPanel.Width - 80,
+                Height = 200,
                 WrapContents = false,
-                Padding = new Padding(10, 0, 10, 0)
+                Padding = new Padding(0),
+                BackColor = Color.Transparent
             };
 
-            // Get top 8 most borrowed books
+            // Get popular books (random for now)
             var popularBooks = PodaciBiblioteke.Knjige
                 .OrderByDescending(k => new Random().Next())
                 .Take(8);
@@ -272,45 +679,42 @@ namespace IS_za_biblioteku.Forms
                 booksContainer.Controls.Add(CreatePopularBookPanel(knjiga));
             }
 
-            carouselPanel.Controls.Add(booksContainer);
-
-            // Hide scrollbars but keep scrolling enabled
-            carouselPanel.HorizontalScroll.Visible = false;
-            carouselPanel.VerticalScroll.Visible = false;
-            carouselPanel.HorizontalScroll.Enabled = true;
-            carouselPanel.VerticalScroll.Enabled = false;
-
-            // Updated scroll buttons
+            // Scroll buttons with modern design
             var leftButton = new Button
             {
                 Text = "❮",
                 Size = new Size(40, 40),
-                Location = new Point(0, (carouselPanel.Height - 40) / 2),
+                Location = new Point(15, (carouselPanel.Height - 35) / 2),
                 FlatStyle = FlatStyle.Flat,
-                BackColor = Color.White,
-                Font = new Font("Arial", 18),
+                BackColor = Color.FromArgb(240, 240, 240),
+                ForeColor = TextColor,
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
-            leftButton.FlatAppearance.BorderSize = 0;
-            leftButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(245, 245, 245);
 
             var rightButton = new Button
             {
                 Text = "❯",
                 Size = new Size(40, 40),
-                Location = new Point(carouselPanel.Width - 40, (carouselPanel.Height - 40) / 2),
+                Location = new Point(carouselPanel.Width - 40, (carouselPanel.Height - 35) / 2),
                 FlatStyle = FlatStyle.Flat,
-                BackColor = Color.White,
-                Font = new Font("Arial", 18),
+                BackColor = Color.FromArgb(240, 240, 240),
+                ForeColor = TextColor,
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
-            rightButton.FlatAppearance.BorderSize = 0;
-            rightButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(245, 245, 245);
+
+            // Button styling
+            foreach (var button in new[] { leftButton, rightButton })
+            {
+                button.FlatAppearance.BorderSize = 0;
+                button.FlatAppearance.MouseOverBackColor = Color.FromArgb(220, 220, 220);
+            }
 
             // Scroll handlers with smooth animation
             leftButton.Click += (s, e) =>
             {
-                var targetValue = Math.Max(0, carouselPanel.HorizontalScroll.Value - 520);
+                var targetValue = Math.Max(0, carouselPanel.HorizontalScroll.Value - 600);
                 SmoothScroll(carouselPanel, targetValue);
             };
 
@@ -318,7 +722,7 @@ namespace IS_za_biblioteku.Forms
             {
                 var targetValue = Math.Min(
                     carouselPanel.HorizontalScroll.Maximum,
-                    carouselPanel.HorizontalScroll.Value + 520);
+                    carouselPanel.HorizontalScroll.Value + 600);
                 SmoothScroll(carouselPanel, targetValue);
             };
 
@@ -332,6 +736,107 @@ namespace IS_za_biblioteku.Forms
             });
 
             dashboardPanel.Controls.Add(popularBooksSection);
+        }
+
+        private Panel CreateBorrowedBookPanel(Knjiga knjiga)
+        {
+            var panel = new Panel
+            {
+                Width = mainContentPanel.Width - 80,
+                Height = 120,
+                Margin = new Padding(0, 0, 0, 15),
+                BackColor = Color.White,
+                Padding = new Padding(25)
+            };
+
+            // Add shadow and rounded corners
+            panel.Paint += (s, e) =>
+            {
+                var graphics = e.Graphics;
+                var shadowColor = Color.FromArgb(15, 0, 0, 0);
+                var roundedRect = new Rectangle(0, 0, panel.Width - 4, panel.Height - 4);
+
+                using (var shadowBrush = new SolidBrush(shadowColor))
+                {
+                    graphics.FillRectangle(shadowBrush, new Rectangle(4, 4, panel.Width - 4, panel.Height - 4));
+                }
+            };
+
+            // Book icon or placeholder
+            var bookIcon = new Label
+            {
+                Text = "📚",
+                Font = new Font("Segoe UI Emoji", 24),
+                Size = new Size(40, 40),
+                Location = new Point(20, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Book details container
+            var detailsPanel = new Panel
+            {
+                Location = new Point(80, 15),
+                Size = new Size(panel.Width - 300, panel.Height - 30),
+                BackColor = Color.Transparent
+            };
+
+            var titleLabel = new Label
+            {
+                Text = knjiga.Naslov,
+                Font = BoldFont,
+                ForeColor = TextColor,
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            var authorLabel = new Label
+            {
+                Text = $"{knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(0, titleLabel.Bottom + 5),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            // Borrow details container
+            var borrowDetailsPanel = new Panel
+            {
+                Location = new Point(panel.Width - 210, 15),
+                Size = new Size(300, panel.Height - 30),
+                BackColor = Color.Transparent
+            };
+
+            var datumPosudbe = DateTime.Now.AddDays(-14); // Example date, replace with actual
+            var datumVracanja = DateTime.Now.AddDays(14); // Example date, replace with actual
+
+            var borrowDateLabel = new Label
+            {
+                Text = $"Posuđeno: {datumPosudbe:dd.MM.yyyy}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                Location = new Point(26, 0)
+            };
+
+            var returnDateLabel = new Label
+            {
+                Text = $"Rok vraćanja: {datumVracanja:dd.MM.yyyy}",
+                Font = RegularFont,
+                ForeColor = datumVracanja < DateTime.Now ? Color.FromArgb(239, 68, 68) : Color.FromArgb(34, 197, 94),
+                Location = new Point(0, borrowDateLabel.Bottom + 5),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            // Add controls to their containers
+            detailsPanel.Controls.AddRange(new Control[] { titleLabel, authorLabel });
+            borrowDetailsPanel.Controls.AddRange(new Control[] { borrowDateLabel, returnDateLabel });
+            panel.Controls.AddRange(new Control[] { bookIcon, detailsPanel, borrowDetailsPanel });
+
+            return panel;
         }
 
         private void SmoothScroll(Panel panel, int targetValue)
@@ -367,92 +872,147 @@ namespace IS_za_biblioteku.Forms
 
         private void ShowBookSearch()
         {
-            // Main container
+            // Main container with modern styling
             var searchPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(20),
-                BackColor = Color.White
+                Padding = new Padding(30),
+                BackColor = SecondaryColor
             };
 
-            // Fixed header section with increased height
-            var headerPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 150, // Increased height
-                BackColor = Color.White
-            };
-
+            // Header section with improved styling
             var titleLabel = new Label
             {
                 Text = "Pretraga knjiga",
-                Font = new Font("Arial", 20, FontStyle.Bold),
+                Font = TitleFont,
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, 35) // Added top margin
+                Location = new Point(0, 65)
             };
 
-            // Search controls container with adjusted position
+            // Modern search controls container
             var searchContainer = new Panel
             {
-                Height = 50,
+                Height = 70,
                 Width = mainContentPanel.Width - 60,
-                Location = new Point(0, titleLabel.Bottom + 20),
-                BackColor = Color.White
+                Location = new Point(0, titleLabel.Bottom + 35),
+                BackColor = SecondaryColor
             };
 
-            // Search box with placeholder
+            // Create a panel to host the search box for consistent height
+            var searchBoxContainer = new Panel
+            {
+                Width = 320,
+                Height = 31,
+                Location = new Point(10, 12),
+                BackColor = AccentColor
+            };
+
+            // Styled search box with placeholder
             var searchBox = new TextBox
             {
-                Width = 300,
-                Height = 30,
-                Font = new Font("Arial", 12),
-                Location = new Point(0, 5),
-                BorderStyle = BorderStyle.FixedSingle
+                Width = searchBoxContainer.Width - 20, // Account for padding
+                Font = RegularFont,
+                Location = new Point(10, 3), // Center vertically
+                BorderStyle = BorderStyle.None,
+                BackColor = AccentColor,
+                ForeColor = TextColor
             };
 
-            // Genre filter
+            // Add search box to its container
+            searchBoxContainer.Controls.Add(searchBox);
+
+            // Modern genre dropdown
             var genreCombo = new ComboBox
             {
-                Width = 150,
-                Height = 30,
-                Location = new Point(searchBox.Right + 20, 5),
-                Font = new Font("Arial", 12),
-                DropDownStyle = ComboBoxStyle.DropDownList
+                Width = 200,
+                Height = 35,
+                Location = new Point(searchBoxContainer.Right + 20, 12),
+                Font = RegularFont,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = AccentColor,
+                ForeColor = TextColor
             };
+
+            // Remove blue selection highlight and improve text rendering
+            genreCombo.DrawMode = DrawMode.OwnerDrawFixed;
+            genreCombo.DrawItem += (sender, e) =>
+            {
+                if (e.Index < 0) return;
+
+                ComboBox combo = (ComboBox)sender;
+                bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+
+                // Enable high quality text rendering
+                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+                // Fill background
+                using (SolidBrush brush = new SolidBrush(isSelected ? PrimaryColor : AccentColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+
+                // Calculate vertical center for text
+                int textHeight = (int)e.Graphics.MeasureString("Tg", e.Font).Height;
+                int textY = e.Bounds.Top + (e.Bounds.Height - textHeight) / 2;
+
+                // Draw text
+                using (SolidBrush brush = new SolidBrush(TextColor))
+                {
+                    e.Graphics.DrawString(
+                        combo.Items[e.Index].ToString(),
+                        e.Font,
+                        brush,
+                        e.Bounds.X + 10,
+                        textY,
+                        StringFormat.GenericDefault
+                    );
+                }
+
+                e.DrawFocusRectangle();
+            };
+
             genreCombo.Items.Add("Svi žanrovi");
             genreCombo.Items.AddRange(PodaciBiblioteke.Zanrovi.Select(z => z.Naziv).ToArray());
             genreCombo.SelectedIndex = 0;
 
-            // Available only checkbox
+            // Styled checkbox
             var availableOnly = new CheckBox
             {
                 Text = "Samo dostupne knjige",
-                Location = new Point(genreCombo.Right + 20, 10),
+                Location = new Point(genreCombo.Right + 20, 12), // Adjusted Y position
                 AutoSize = true,
-                Font = new Font("Arial", 12),
-                Cursor = Cursors.Hand
+                Font = RegularFont,
+                Cursor = Cursors.Hand,
+                ForeColor = TextColor,
+                TextAlign = ContentAlignment.TopLeft,
+                Padding = new Padding(0), // Reset padding
+                UseVisualStyleBackColor = true // Ensures consistent rendering
             };
 
-            // Results container with proper spacing
+            // Results container with modern styling
             var resultsContainer = new Panel
             {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, 20, 0, 0), // Added top padding
+                Location = new Point(0, searchContainer.Bottom + 20),
+                Width = mainContentPanel.Width - 60,
+                Height = mainContentPanel.Height - searchContainer.Bottom - 100,
+                BackColor = SecondaryColor
             };
 
+            // Results flow panel with improved spacing
             var resultsFlowPanel = new FlowLayoutPanel
             {
+                Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.TopDown,
-                AutoSize = true,
-                Width = resultsContainer.Width - 20,
                 WrapContents = false,
                 AutoScroll = true,
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, 150, 0, 0)
+                BackColor = SecondaryColor
             };
 
             void PerformFilteredSearch()
             {
+                resultsFlowPanel.SuspendLayout(); // Add this for better performance
                 resultsFlowPanel.Controls.Clear();
                 var searchTerm = searchBox.Text.ToLower();
                 var selectedGenre = genreCombo.SelectedItem?.ToString();
@@ -461,7 +1021,7 @@ namespace IS_za_biblioteku.Forms
                 var query = PodaciBiblioteke.Knjige.AsQueryable();
 
                 // Apply search term filter
-                if (!string.IsNullOrEmpty(searchTerm) && !searchTerm.Equals("unesite naslov, autora ili žanr..."))
+                if (!string.IsNullOrEmpty(searchTerm) && !searchTerm.Equals("pretraži po naslovu, autoru ili žanru...", StringComparison.OrdinalIgnoreCase))
                 {
                     query = query.Where(k =>
                         k.Naslov.ToLower().Contains(searchTerm) ||
@@ -484,27 +1044,48 @@ namespace IS_za_biblioteku.Forms
 
                 var results = query.OrderBy(k => k.Naslov).ToList();
 
-                // Add results header
-                var headerLabel = new Label
+                // Results header
+                var headerPanel = new Panel
+                {
+                    Width = resultsFlowPanel.Width - 25,
+                    Height = 50,
+                    Margin = new Padding(0, 0, 0, 20),
+                    BackColor = SecondaryColor
+                };
+
+                var resultsCountLabel = new Label
                 {
                     Text = $"Pronađeno {results.Count} knjiga",
-                    Font = new Font("Arial", 12, FontStyle.Bold),
+                    Font = BoldFont,
+                    ForeColor = TextColor,
                     AutoSize = true,
-                    Margin = new Padding(0, 0, 0, 15)
+                    Location = new Point(0, 15)
                 };
-                resultsFlowPanel.Controls.Add(headerLabel);
+
+                headerPanel.Controls.Add(resultsCountLabel);
+                resultsFlowPanel.Controls.Add(headerPanel);
 
                 if (!results.Any())
                 {
+                    var noResultsPanel = new Panel
+                    {
+                        Width = resultsFlowPanel.Width - 25,
+                        Height = 100,
+                        BackColor = AccentColor,
+                        Margin = new Padding(0, 10, 0, 10)
+                    };
+
                     var noResultsLabel = new Label
                     {
                         Text = "Nema pronađenih knjiga prema zadatim kriterijima.",
-                        Font = new Font("Arial", 12),
-                        AutoSize = true,
-                        ForeColor = Color.Gray,
-                        Margin = new Padding(0, 10, 0, 0)
+                        Font = RegularFont,
+                        ForeColor = TextColor,
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        Dock = DockStyle.Fill
                     };
-                    resultsFlowPanel.Controls.Add(noResultsLabel);
+
+                    noResultsPanel.Controls.Add(noResultsLabel);
+                    resultsFlowPanel.Controls.Add(noResultsPanel);
                 }
                 else
                 {
@@ -513,20 +1094,17 @@ namespace IS_za_biblioteku.Forms
                         resultsFlowPanel.Controls.Add(CreateSearchResultPanel(knjiga));
                     }
                 }
-            }
 
-            // Wire up search events
-            searchBox.TextChanged += (s, e) => PerformFilteredSearch();
-            genreCombo.SelectedIndexChanged += (s, e) => PerformFilteredSearch();
-            availableOnly.CheckedChanged += (s, e) => PerformFilteredSearch();
+                resultsFlowPanel.ResumeLayout();
+            }
 
             // Add placeholder text
             searchBox.Enter += (s, e) =>
             {
-                if (searchBox.Text == "Unesite naslov, autora ili žanr...")
+                if (searchBox.Text == "Pretraži po naslovu, autoru ili žanru...")
                 {
                     searchBox.Text = "";
-                    searchBox.ForeColor = Color.Black;
+                    searchBox.ForeColor = TextColor;
                 }
             };
 
@@ -534,142 +1112,191 @@ namespace IS_za_biblioteku.Forms
             {
                 if (string.IsNullOrWhiteSpace(searchBox.Text))
                 {
-                    searchBox.Text = "Unesite naslov, autora ili žanr...";
+                    searchBox.Text = "Pretraži po naslovu, autoru ili žanru...";
                     searchBox.ForeColor = Color.Gray;
                 }
             };
-            searchBox.Text = "Unesite naslov, autora ili žanr...";
+
+            // Initial placeholder text
+            searchBox.Text = "Pretraži po naslovu, autoru ili žanru...";
             searchBox.ForeColor = Color.Gray;
 
+            // Wire up search events
+            searchBox.TextChanged += (s, e) => PerformFilteredSearch();
+            genreCombo.SelectedIndexChanged += (s, e) => PerformFilteredSearch();
+            availableOnly.CheckedChanged += (s, e) => PerformFilteredSearch();
+
             // Layout hierarchy
-            searchContainer.Controls.AddRange(new Control[] { searchBox, genreCombo, availableOnly });
-            headerPanel.Controls.AddRange(new Control[] { titleLabel, searchContainer });
+            searchContainer.Controls.AddRange(new Control[] { searchBoxContainer, genreCombo, availableOnly });
             resultsContainer.Controls.Add(resultsFlowPanel);
+            searchPanel.Controls.AddRange(new Control[] { titleLabel, searchContainer, resultsContainer });
 
-            // Add a separator line
-            var separator = new Panel
-            {
-                Height = 1,
-                Dock = DockStyle.Top,
-                BackColor = Color.LightGray
-            };
-
-            searchPanel.Controls.AddRange(new Control[] { headerPanel, separator, resultsContainer });
-            mainContentPanel.Controls.Add(searchPanel);
-
-            // Modified resize handler
-            mainContentPanel.Resize += (s, e) =>
-            {
-                searchContainer.Width = mainContentPanel.Width - 60;
-                resultsFlowPanel.Width = resultsContainer.Width - 20;
-                foreach (Control c in resultsFlowPanel.Controls)
-                {
-                    if (c is Panel bookPanel)
-                    {
-                        bookPanel.Width = resultsFlowPanel.Width - 40;
-                    }
-                }
-            };
-
-            // Initial search
+            // Perform initial search
             PerformFilteredSearch();
-        }
 
-        // Update ShowAllBooks to include proper spacing for the header
-        private void ShowAllBooks(FlowLayoutPanel resultsPanel)
-        {
-            resultsPanel.Controls.Clear();
-
-            // Add header with proper spacing
-            var headerLabel = new Label
-            {
-                Text = $"Ukupno knjiga: {PodaciBiblioteke.Knjige.Count}",
-                Font = new Font("Arial", 12, FontStyle.Bold),
-                AutoSize = true,
-                Margin = new Padding(0, 0, 0, 20) // Increased bottom margin
-            };
-            resultsPanel.Controls.Add(headerLabel);
-
-            // Show all books
-            foreach (var knjiga in PodaciBiblioteke.Knjige.OrderBy(k => k.Naslov))
-            {
-                resultsPanel.Controls.Add(CreateSearchResultPanel(knjiga));
-            }
+            mainContentPanel.Controls.Add(searchPanel);
         }
 
         private Panel CreateSearchResultPanel(Knjiga knjiga)
         {
             var panel = new Panel
             {
-                Width = mainContentPanel.Width - 100,
-                Height = 130,
-                Margin = new Padding(0, 0, 0, 15), // Increased bottom margin for better spacing
-                BackColor = Color.WhiteSmoke,
-                Padding = new Padding(15),
+                Width = 840,
+                Height = 145,
+                Margin = new Padding(0, 0, 0, 15),
+                BackColor = Color.White,
+                Padding = new Padding(20),
                 Cursor = Cursors.Hand
             };
 
+            // Add shadow effect
+            panel.Paint += (s, e) =>
+            {
+                var graphics = e.Graphics;
+                var shadowColor = Color.FromArgb(20, 0, 0, 0);
+                graphics.FillRectangle(new SolidBrush(shadowColor),
+                    new Rectangle(4, 4, panel.Width - 4, panel.Height - 4));
+            };
+
+            // Book icon
+            var bookIcon = new Label
+            {
+                Text = "📚",
+                Font = new Font("Segoe UI Emoji", 24),
+                Size = new Size(40, 40),
+                Location = new Point(20, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Title with larger, bold font
             var titleLabel = new Label
             {
                 Text = knjiga.Naslov,
-                Font = new Font("Arial", 14, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
+                Font = new Font(TitleFont.FontFamily, 16, FontStyle.Bold),
+                ForeColor = TextColor,
+                Location = new Point(76, 20),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
+            // Author with regular font
             var authorLabel = new Label
             {
-                Text = $"Autor: {knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 35),
-                AutoSize = true
+                Text = $"{knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(80, titleLabel.Bottom + 12),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
+            // Genre with styled background
             var genreLabel = new Label
             {
-                Text = $"Žanr: {knjiga.Zanr.Naziv}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 60),
-                AutoSize = true
-            };
-
-            var availabilityLabel = new Label
-            {
-                Text = $"Dostupno primjeraka: {knjiga.DostupnaKolicina}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 85),
+                Text = knjiga.Zanr.Naziv,
+                Font = RegularFont,
+                ForeColor = PrimaryColor,
+                Location = new Point(80, authorLabel.Bottom + 8),
                 AutoSize = true,
-                ForeColor = knjiga.DostupnaKolicina > 0 ? Color.Green : Color.Red
+                Padding = new Padding(8, 4, 8, 4),
+                BackColor = Color.FromArgb(255, 240, 230)
             };
 
-            // Add status indicator
+            // Status indicator with icon
+            var statusIcon = new Label
+            {
+                Text = knjiga.Dostupna ? "✓" : "×",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = knjiga.Dostupna ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(panel.Width - 160, 20),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
             var statusLabel = new Label
             {
                 Text = knjiga.Dostupna ? "DOSTUPNO" : "NIJE DOSTUPNO",
-                Font = new Font("Arial", 10, FontStyle.Bold),
+                Font = BoldFont,
+                ForeColor = knjiga.Dostupna ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(panel.Width - 130, 22),
                 AutoSize = true,
-                Location = new Point(panel.Width - 150, 10),
-                ForeColor = knjiga.Dostupna ? Color.Green : Color.Red
+                BackColor = Color.Transparent
             };
+
+            // Available copies with subtle color
+            var availabilityLabel = new Label
+            {
+                Text = $"Dostupno primjeraka: {knjiga.DostupnaKolicina}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(panel.Width - 220, statusLabel.Bottom + 10),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            // Make sure all labels (except genreLabel) have transparent background initially
+            foreach (Control control in panel.Controls)
+            {
+                if (control != genreLabel)
+                {
+                    control.BackColor = Color.Transparent;
+                }
+            }
 
             panel.Controls.AddRange(new Control[]
             {
+        bookIcon,
         titleLabel,
         authorLabel,
         genreLabel,
-        availabilityLabel,
-        statusLabel
+        statusIcon,
+        statusLabel,
+        availabilityLabel
             });
 
-            panel.Click += (s, e) => ShowBookDetails(knjiga);
+            // Click handler
+            EventHandler clickHandler = (s, e) =>
+            {
+                if (!trenutniKorisnik.Aktivni)
+                {
+                    MessageBox.Show("Vaša članarina nije aktivna. Molimo obnovite članarinu kako biste mogli rezervisati knjige.",
+                                  "Neaktivna članarina",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!knjiga.Dostupna)
+                {
+                    MessageBox.Show("Knjiga trenutno nije dostupna za rezervaciju.",
+                                  "Knjiga nedostupna",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Information);
+                    return;
+                }
+
+                ShowBookDetails(knjiga); // Moved inside the click handler
+            };
+
+            panel.Click += clickHandler;
             foreach (Control control in panel.Controls)
             {
-                control.Click += (s, e) => ShowBookDetails(knjiga);
+                control.Click += clickHandler;
+                control.Cursor = Cursors.Hand;
             }
 
-            // Add hover effect
-            panel.MouseEnter += (s, e) => panel.BackColor = Color.FromArgb(240, 240, 240);
-            panel.MouseLeave += (s, e) => panel.BackColor = Color.WhiteSmoke;
+            // Hover effect
+            panel.MouseEnter += (s, e) => {
+                panel.BackColor = AccentColor;
+            };
+
+            panel.MouseLeave += (s, e) => {
+                panel.BackColor = Color.White;
+            };
+
+            if (statusLabel.Text == "NIJE DOSTUPNO")
+                availabilityLabel.Text = "Dostupno primjeraka: 0";
 
             return panel;
         }
@@ -679,73 +1306,108 @@ namespace IS_za_biblioteku.Forms
             var detailsForm = new Form
             {
                 Text = knjiga.Naslov,
-                Size = new Size(600, 500),
+                Size = new Size(500, 400),
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
-                MinimizeBox = false
+                MinimizeBox = false,
+                BackColor = SecondaryColor
             };
 
             var panel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(20)
+                Padding = new Padding(30)
             };
 
-            var controls = new Control[]
+            // Book icon
+            var bookIcon = new Label
             {
-        new Label
-        {
-            Text = knjiga.Naslov,
-            Font = new Font("Arial", 20, FontStyle.Bold),
-            AutoSize = true,
-            Location = new Point(0, 0)
-        },
-        new Label
-        {
-            Text = $"Autor: {knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
-            Font = new Font("Arial", 14),
-            AutoSize = true,
-            Location = new Point(0, 40)
-        },
-        new Label
-        {
-            Text = $"Žanr: {knjiga.Zanr.Naziv}",
-            Font = new Font("Arial", 14),
-            AutoSize = true,
-            Location = new Point(0, 70)
-        },
-        new Label
-        {
-            Text = $"Godina izdavanja: {knjiga.GodinaIzdavanja}",
-            Font = new Font("Arial", 14),
-            AutoSize = true,
-            Location = new Point(0, 100)
-        },
-        new Label
-        {
-            Text = $"Dostupno primjeraka: {knjiga.DostupnaKolicina}",
-            Font = new Font("Arial", 14),
-            AutoSize = true,
-            Location = new Point(0, 130)
-        }
+                Text = "📚",
+                Font = new Font("Segoe UI Emoji", 36),
+                Size = new Size(60, 60),
+                Location = new Point(30, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Title with larger font
+            var titleLabel = new Label
+            {
+                Text = knjiga.Naslov,
+                Font = TitleFont,
+                ForeColor = TextColor,
+                AutoSize = true,
+                Location = new Point(100, 30)
+            };
+
+            // Book details with consistent spacing
+            var authorLabel = new Label
+            {
+                Text = $"Autor: {knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
+                Font = RegularFont,
+                ForeColor = TextColor,
+                AutoSize = true,
+                Location = new Point(30, 120)
+            };
+
+            var genreLabel = new Label
+            {
+                Text = $"Žanr: {knjiga.Zanr.Naziv}",
+                Font = RegularFont,
+                ForeColor = TextColor,
+                AutoSize = true,
+                Location = new Point(30, authorLabel.Bottom + 20)
+            };
+
+            var yearLabel = new Label
+            {
+                Text = $"Godina izdavanja: {knjiga.GodinaIzdavanja}",
+                Font = RegularFont,
+                ForeColor = TextColor,
+                AutoSize = true,
+                Location = new Point(30, genreLabel.Bottom + 20)
+            };
+
+            var availabilityLabel = new Label
+            {
+                Text = $"Dostupno primjeraka: {knjiga.DostupnaKolicina}",
+                Font = RegularFont,
+                ForeColor = knjiga.DostupnaKolicina > 0 ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                AutoSize = true,
+                Location = new Point(30, yearLabel.Bottom + 20)
             };
 
             var reserveButton = new Button
             {
                 Text = "Rezerviši knjigu",
-                Size = new Size(150, 40),
-                Location = new Point(0, 180),
+                Size = new Size(200, 45),
+                Location = new Point((detailsForm.Width / 2) - 106, availabilityLabel.Bottom + 30),
                 Enabled = knjiga.Dostupna && knjiga.DostupnaKolicina > 0 && trenutniKorisnik.Aktivni,
-                BackColor = Color.FromArgb(51, 51, 76),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                BackColor = PrimaryColor,
+                ForeColor = SecondaryColor,
+                FlatStyle = FlatStyle.Flat,
+                Font = BoldFont,
+                Cursor = Cursors.Hand
             };
+
+            // Add hover effect
+            reserveButton.MouseEnter += (s, e) => reserveButton.BackColor = HoverColor;
+            reserveButton.MouseLeave += (s, e) => reserveButton.BackColor = PrimaryColor;
+            reserveButton.FlatAppearance.BorderSize = 0;
 
             reserveButton.Click += (s, e) => ReserveBook(knjiga, detailsForm);
 
-            panel.Controls.AddRange(controls);
-            panel.Controls.Add(reserveButton);
+            panel.Controls.AddRange(new Control[]
+            {
+        bookIcon,
+        titleLabel,
+        authorLabel,
+        genreLabel,
+        yearLabel,
+        availabilityLabel,
+        reserveButton
+            });
+
             detailsForm.Controls.Add(panel);
             detailsForm.ShowDialog();
         }
@@ -754,8 +1416,11 @@ namespace IS_za_biblioteku.Forms
         {
             if (!trenutniKorisnik.Aktivni)
             {
-                MessageBox.Show("Ne možete rezervisati knjigu jer vaša članarina nije aktivna.",
-                    "Neaktivna članarina", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Ne možete rezervisati knjigu jer vaša članarina nije aktivna.",
+                    "Neaktivna članarina",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 
@@ -764,16 +1429,20 @@ namespace IS_za_biblioteku.Forms
 
             if (activeReservations >= 3)
             {
-                MessageBox.Show("Dostigli ste maksimalan broj aktivnih rezervacija (3).",
-                    "Limit rezervacija", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Dostigli ste maksimalan broj aktivnih rezervacija (3).",
+                    "Limit rezervacija",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 
-            var result = MessageBox.Show(
+            var result = CustomMessageBox.Show(
                 $"Da li ste sigurni da želite rezervisati knjigu '{knjiga.Naslov}'?\n\n" +
                 "Rezervacija će biti aktivna 3 dana od trenutka kada knjiga postane dostupna.",
                 "Potvrda rezervacije",
-                MessageBoxButtons.YesNo,
+                "Da",
+                "Ne",
                 MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
@@ -790,8 +1459,7 @@ namespace IS_za_biblioteku.Forms
                 knjiga.DostupnaKolicina--;
 
                 MessageBox.Show(
-                    "Knjiga je uspješno rezervisana.\n\n" +
-                    "Bićete obaviješteni kada knjiga postane dostupna.",
+                    "Knjiga je uspješno rezervisana.",
                     "Uspjeh",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -801,31 +1469,91 @@ namespace IS_za_biblioteku.Forms
             }
         }
 
+        // Helper class for custom message boxes
+        public static class CustomMessageBox
+        {
+            public static DialogResult Show(string text, string caption, string okText, string cancelText, MessageBoxIcon icon)
+            {
+                var form = new Form()
+                {
+                    Text = caption,
+                    ClientSize = new Size(300, 170),
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                    StartPosition = FormStartPosition.CenterScreen,
+                    MinimizeBox = false,
+                    MaximizeBox = false
+                };
+
+                var message = new Label()
+                {
+                    Text = text,
+                    Size = new Size(280, 80),
+                    Location = new Point(20, 20),
+                    TextAlign = ContentAlignment.MiddleLeft
+                };
+
+                var okButton = new Button()
+                {
+                    DialogResult = DialogResult.Yes,
+                    Name = "okButton",
+                    Size = new Size(90, 30),
+                    Text = okText,
+                    Location = new Point((form.Width / 2) - 100, message.Bottom + 20),
+                    BackColor = Color.FromArgb(255, 140, 0),
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                okButton.FlatAppearance.BorderSize = 0;
+
+                var cancelButton = new Button()
+                {
+                    DialogResult = DialogResult.No,
+                    Name = "cancelButton",
+                    Size = new Size(90, 30),
+                    Text = cancelText,
+                    Location = new Point((form.Width / 2) + 0, message.Bottom + 20),
+                    BackColor = Color.FromArgb(51, 51, 51),
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                cancelButton.FlatAppearance.BorderSize = 0;
+
+                form.Controls.AddRange(new Control[] { message, okButton, cancelButton });
+                form.AcceptButton = okButton;
+                form.CancelButton = cancelButton;
+
+                return form.ShowDialog();
+            }
+        }
+
         private void ShowMyBorrowings()
         {
             var borrowingsPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(20),
-                AutoScroll = true
+                Padding = new Padding(30),
+                AutoScroll = true,
+                BackColor = SecondaryColor
             };
 
-            // Title
+            // Title with consistent styling
             var titleLabel = new Label
             {
                 Text = "Moje posudbe",
-                Font = new Font("Arial", 24, FontStyle.Bold),
+                Font = TitleFont,
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, 0)
+                Location = new Point(0, 65)
             };
 
-            // Active borrowings section with more spacing
+            // Active borrowings section
             var activeBorrowingsLabel = new Label
             {
                 Text = "Aktivne posudbe",
-                Font = new Font("Arial", 18, FontStyle.Bold),
+                Font = new Font(TitleFont.FontFamily, 18, FontStyle.Bold),
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, titleLabel.Bottom + 30)  // Increased spacing
+                Location = new Point(0, titleLabel.Bottom + 35)
             };
 
             var activeBorrowingsPanel = new Panel
@@ -833,8 +1561,8 @@ namespace IS_za_biblioteku.Forms
                 Location = new Point(0, activeBorrowingsLabel.Bottom + 15),
                 Width = mainContentPanel.Width - 60,
                 AutoSize = true,
-                BackColor = Color.FromArgb(240, 240, 240),
-                Padding = new Padding(15)
+                BackColor = SecondaryColor,
+                Padding = new Padding(0)
             };
 
             var activeBorrowings = PodaciBiblioteke.Posudbe
@@ -870,12 +1598,14 @@ namespace IS_za_biblioteku.Forms
                 activeBorrowingsPanel.Controls.Add(flowPanel);
             }
 
+            // History section with modern styling
             var historyLabel = new Label
             {
                 Text = "Historija posudbi",
-                Font = new Font("Arial", 18, FontStyle.Bold),
+                Font = new Font(TitleFont.FontFamily, 18, FontStyle.Bold),
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, activeBorrowingsPanel.Bottom + 70)  // Increased spacing
+                Location = new Point(0, activeBorrowingsPanel.Bottom + 70)
             };
 
             var historyPanel = new Panel
@@ -883,8 +1613,8 @@ namespace IS_za_biblioteku.Forms
                 Location = new Point(0, historyLabel.Bottom + 15),
                 Width = mainContentPanel.Width - 60,
                 Height = 600,
-                BackColor = Color.FromArgb(240, 240, 240),
-                Padding = new Padding(15),
+                BackColor = SecondaryColor,
+                Padding = new Padding(0),
                 AutoScroll = true
             };
 
@@ -900,7 +1630,8 @@ namespace IS_za_biblioteku.Forms
                     Dock = DockStyle.Fill,
                     FlowDirection = FlowDirection.TopDown,
                     AutoSize = true,
-                    WrapContents = false
+                    WrapContents = false,
+                    Padding = new Padding(0)
                 };
 
                 foreach (var posudba in pastBorrowings)
@@ -911,14 +1642,15 @@ namespace IS_za_biblioteku.Forms
             }
             else
             {
-                historyPanel.Controls.Add(new Label
+                var emptyLabel = new Label
                 {
                     Text = "Nemate prethodnih posudbi.",
-                    Font = new Font("Arial", 12),
-                    ForeColor = Color.Gray,
+                    Font = RegularFont,
+                    ForeColor = Color.FromArgb(107, 114, 128),
                     AutoSize = true,
                     Location = new Point(10, 10)
-                });
+                };
+                historyPanel.Controls.Add(emptyLabel);
             }
 
             borrowingsPanel.Controls.AddRange(new Control[]
@@ -938,333 +1670,202 @@ namespace IS_za_biblioteku.Forms
             var panel = new Panel
             {
                 Width = mainContentPanel.Width - 100,
-                Height = 120,
-                Margin = new Padding(0, 0, 0, 10),
-                BackColor = Color.WhiteSmoke
+                Height = 130,
+                Margin = new Padding(0, 0, 0, 15),
+                BackColor = Color.White,
+                Padding = new Padding(20)
+            };
+
+            // Add shadow effect
+            panel.Paint += (s, e) =>
+            {
+                var graphics = e.Graphics;
+                var shadowColor = Color.FromArgb(20, 0, 0, 0);
+                graphics.FillRectangle(new SolidBrush(shadowColor),
+                    new Rectangle(4, 4, panel.Width - 4, panel.Height - 4));
+            };
+
+            var bookIcon = new Label
+            {
+                Text = "📚",
+                Font = new Font("Segoe UI Emoji", 24),
+                Size = new Size(40, 40),
+                Location = new Point(20, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
             };
 
             var titleLabel = new Label
             {
                 Text = posudba.Knjiga.Naslov,
-                Font = new Font("Arial", 14, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
+                Font = new Font(TitleFont.FontFamily, 16, FontStyle.Bold),
+                ForeColor = TextColor,
+                Location = new Point(76, 20),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
             var borrowDateLabel = new Label
             {
                 Text = $"Datum posudbe: {posudba.DatumPosudbe:dd.MM.yyyy}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 40),
-                AutoSize = true
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(80, titleLabel.Bottom + 12),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
             var returnDateLabel = new Label
             {
-                Text = $"Rok za vraćanje: {posudba.DatumVracanja:dd.MM.yyyy}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 65),
+                Text = $"Rok vraćanja: {posudba.DatumVracanja:dd.MM.yyyy}",
+                Font = RegularFont,
+                ForeColor = posudba.DatumVracanja < DateTime.Now ? Color.FromArgb(239, 68, 68) : Color.FromArgb(34, 197, 94),
+                Location = new Point(80, borrowDateLabel.Bottom + 8),
                 AutoSize = true,
-                ForeColor = posudba.DatumVracanja < DateTime.Now ? Color.Red : Color.Black
+                BackColor = Color.Transparent
             };
 
             panel.Controls.AddRange(new Control[]
             {
-                titleLabel,
-                borrowDateLabel,
-                returnDateLabel
+        bookIcon,
+        titleLabel,
+        borrowDateLabel,
+        returnDateLabel
             });
+
             return panel;
         }
 
         private void ShowProfile()
         {
+            mainContentPanel.Controls.Clear();
+
             var profilePanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(20),
-                AutoScroll = true
+                Padding = new Padding(40),
+                AutoScroll = true,
+                BackColor = Color.White
             };
 
-            // Main Title
+            // Main Title with consistent spacing
             var titleLabel = new Label
             {
                 Text = "Moj profil",
-                Font = new Font("Arial", 24, FontStyle.Bold),
+                Font = TitleFont,
+                ForeColor = TextColor,
                 AutoSize = true,
-                Location = new Point(0, 0)
+                Margin = new Padding(0, 0, 0, 40),
+                Location= new Point(0, 65)
             };
 
-            // Personal Info Section
+            // Personal Info Section with fixed width and spacing
             var personalSection = new Panel
             {
-                Location = new Point(0, titleLabel.Bottom + 30),
-                Width = mainContentPanel.Width - 60,
-                AutoSize = true
+                AutoSize = false,
+                Width = mainContentPanel.Width - 100,
+                Margin = new Padding(0, 0, 0, 40),
+                Location = new Point(0, titleLabel.Bottom + 40),
+                Height = 420
             };
 
             var personalInfoLabel = new Label
             {
                 Text = "Lični podaci",
-                Font = new Font("Arial", 18, FontStyle.Bold),
-                AutoSize = true
-            };
-
-            var personalInfoPanel = new Panel
-            {
-                Location = new Point(0, personalInfoLabel.Bottom + 15),
-                Width = 600,
+                Font = new Font(TitleFont.FontFamily, 18, FontStyle.Bold),
+                ForeColor = TextColor,
                 AutoSize = true,
-                BackColor = Color.FromArgb(240, 240, 240),
-                Padding = new Padding(20)
+                Margin = new Padding(10, 0, 0, 35)
             };
 
+            // Update spacing in personal info section
+            var personalInfoPanel = CreateCardPanel(mainContentPanel.Width - 100);
             var infoTable = new TableLayoutPanel
             {
                 ColumnCount = 2,
                 RowCount = 9,
                 AutoSize = true,
-                Padding = new Padding(10),
-                Width = 560
+                Width = mainContentPanel.Width - 160,
+                Location = new Point(30, 40),
+                Height = 400,
+                Margin = new Padding(0),
+                Padding = new Padding(30)
             };
 
-            // Set column styles with fixed widths
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140F));
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 300F));
-
-            // Set initial row heights
+            // Set initial row heights - make error rows 0 height by default
             for (int i = 0; i < 9; i++)
             {
-                if (i == 3 || i == 5) // Error message rows
-                {
-                    infoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F)); // Start with 0 height
-                }
-                else
-                {
-                    infoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));
-                }
+                // Set error rows (3 and 5) to 0 height initially
+                float height = (i == 3 || i == 5) ? 0F : 40F;
+                infoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, height));
             }
 
-            // Update error label styling
-            var emailErrorLabel = new Label
-            {
-                ForeColor = Color.Red,
-                AutoSize = true,
-                Font = new Font("Arial", 9),
-                Visible = false,
-                Margin = new Padding(0, 0, 0, 0)
-            };
-
-            var phoneErrorLabel = new Label
-            {
-                ForeColor = Color.Red,
-                AutoSize = true,
-                Font = new Font("Arial", 9),
-                Visible = false,
-                Margin = new Padding(0, 0, 0, 0)
-            };
-
-            // Create editable fields with consistent sizing
-            var emailBox = new TextBox
-            {
-                Text = trenutniKorisnik.Email,
-                Font = new Font("Arial", 12),
-                Width = 250,
-                Height = 25,
-                BorderStyle = BorderStyle.FixedSingle,
-                Anchor = AnchorStyles.Left | AnchorStyles.Top,
-                Margin = new Padding(0, 3, 0, 0)
-            };
-
-            var phoneBox = new TextBox
-            {
-                Text = trenutniKorisnik.BrojTelefona,
-                Font = new Font("Arial", 12),
-                Width = 250,
-                Height = 25,
-                BorderStyle = BorderStyle.FixedSingle,
-                Anchor = AnchorStyles.Left | AnchorStyles.Top,
-                Margin = new Padding(0, 3, 0, 0)
-            };
-
-            var saveButton = new Button
-            {
-                Text = "Sačuvaj promjene",
-                Size = new Size(150, 30),
-                BackColor = Color.FromArgb(51, 51, 76),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                Margin = new Padding(0, 3, 0, 0),
-                Enabled = false // Initially disabled
-            };
-
-            // Track original values
-            var originalEmail = trenutniKorisnik.Email;
-            var originalPhone = trenutniKorisnik.BrojTelefona;
-            bool isEmailValid = true;
-            bool isPhoneValid = true;
-
-            // Validation function
-            bool ValidateEmail(string email)
-            {
-                string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-                return System.Text.RegularExpressions.Regex.IsMatch(email, emailPattern);
-            }
-
-            bool ValidatePhone(string phone)
-            {
-                string phonePattern = @"^(\+387|0)\d{2}[-]?\d{3}[-]?\d{3,4}$";
-                return System.Text.RegularExpressions.Regex.IsMatch(phone.Replace(" ", ""), phonePattern);
-            }
-
-            // Check if any changes were made
-            void CheckChanges()
-            {
-                bool hasChanges = emailBox.Text != originalEmail || phoneBox.Text != originalPhone;
-                saveButton.Enabled = hasChanges && isEmailValid && isPhoneValid;
-            }
-
-            // Email validation handler
-            emailBox.TextChanged += (s, e) =>
-            {
-                isEmailValid = ValidateEmail(emailBox.Text);
-                if (!isEmailValid)
-                {
-                    emailErrorLabel.Text = "Unesite ispravnu email adresu (npr. ime@domena.com)";
-                    emailErrorLabel.Visible = true;
-                    emailBox.BackColor = Color.MistyRose;
-                    infoTable.RowStyles[3] = new RowStyle(SizeType.Absolute, 20F);
-                }
-                else
-                {
-                    emailErrorLabel.Visible = false;
-                    emailBox.BackColor = Color.White;
-                    infoTable.RowStyles[3] = new RowStyle(SizeType.Absolute, 0F);
-                }
-                infoTable.PerformLayout();
-                CheckChanges();
-            };
-
-            phoneBox.TextChanged += (s, e) =>
-            {
-                isPhoneValid = ValidatePhone(phoneBox.Text);
-                if (!isPhoneValid)
-                {
-                    phoneErrorLabel.Text = "Unesite validan broj telefona (npr.+38712345678 ili 061234567)";
-                    phoneErrorLabel.Visible = true;
-                    phoneBox.BackColor = Color.MistyRose;
-                    infoTable.RowStyles[5] = new RowStyle(SizeType.Absolute, 20F);
-                }
-                else
-                {
-                    phoneErrorLabel.Visible = false;
-                    phoneBox.BackColor = Color.White;
-                    infoTable.RowStyles[5] = new RowStyle(SizeType.Absolute, 0F);
-                }
-                infoTable.PerformLayout();
-                CheckChanges();
-            };
-
-            saveButton.Click += (s, e) =>
-            {
-                if (isEmailValid && isPhoneValid)
-                {
-                    trenutniKorisnik.Email = emailBox.Text;
-                    trenutniKorisnik.BrojTelefona = phoneBox.Text;
-                    originalEmail = emailBox.Text;
-                    originalPhone = phoneBox.Text;
-                    saveButton.Enabled = false;
-                    MessageBox.Show("Promjene su uspješno sačuvane.", "Uspjeh",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            };
-
-            var emailTooltip = new ToolTip();
-            emailTooltip.SetToolTip(emailBox, "Unesite validnu email adresu (npr. ime@domena.com)");
-
-            var phoneTooltip = new ToolTip();
-            phoneTooltip.SetToolTip(phoneBox, "Unesite validan broj telefona (npr.+38712345678 ili 061234567)");
-
-            // Add rows to table
+            // Add rows only once with proper spacing
             AddProfileRow(infoTable, "Ime:", trenutniKorisnik.Ime, 0);
             AddProfileRow(infoTable, "Prezime:", trenutniKorisnik.Prezime, 1);
             AddProfileRow(infoTable, "Email:", "", 2);
-            // Row 3 is for email error
             AddProfileRow(infoTable, "Telefon:", "", 4);
-            // Row 5 is for phone error
             AddProfileRow(infoTable, "Članarina:", trenutniKorisnik.Clanarina.Naziv, 6);
             AddProfileRow(infoTable, "Važi do:", String.Format("{0:dd.MM.yyyy}", trenutniKorisnik.DatumIsteka), 7);
 
+            // Modern styled textboxes
+            var emailBox = CreateStyledTextBox(trenutniKorisnik.Email);
+            var phoneBox = CreateStyledTextBox(trenutniKorisnik.BrojTelefona);
+
+            // Error labels with consistent styling
+            var emailErrorLabel = CreateErrorLabel();
+            var phoneErrorLabel = CreateErrorLabel();
+
+            // Modern save button
+            var saveButton = new Button
+            {
+                Text = "Sačuvaj promjene",
+                Size = new Size(180, 45),
+                BackColor = PrimaryColor,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = BoldFont,
+                Cursor = Cursors.Hand,
+                Margin = new Padding(0, 20, 0, 0),
+                Enabled = false
+            };
+            saveButton.FlatAppearance.BorderSize = 0;
+
+            // Add hover effects
+            AddButtonHoverEffects(saveButton);
+
+            // Validation setup
+            SetupValidation(emailBox, phoneBox, emailErrorLabel, phoneErrorLabel, saveButton, infoTable);
+
+            // Add hover effects
+            AddButtonHoverEffects(saveButton);
+
+            // Validation setup
+            SetupValidation(emailBox, phoneBox, emailErrorLabel, phoneErrorLabel, saveButton, infoTable);
+
+            // Add controls to table (only once)
             infoTable.Controls.Add(emailBox, 1, 2);
             infoTable.Controls.Add(emailErrorLabel, 1, 3);
             infoTable.Controls.Add(phoneBox, 1, 4);
             infoTable.Controls.Add(phoneErrorLabel, 1, 5);
             infoTable.Controls.Add(saveButton, 1, 8);
 
+            // Create membership status first
+            var membershipStatus = CreateMembershipStatus(trenutniKorisnik.Aktivni);
+
+            // Build the hierarchy in the correct order
+            personalSection.Controls.Add(membershipStatus);
+            personalSection.Controls.Add(personalInfoLabel);
+            personalSection.Controls.Add(personalInfoPanel);
+
+            // Remove the duplicate membership status addition
+            // personalInfoPanel.Controls.Add(CreateMembershipStatus(trenutniKorisnik.Aktivni)); // Remove this line
             personalInfoPanel.Controls.Add(infoTable);
-            personalSection.Controls.AddRange(new Control[] { personalInfoLabel, personalInfoPanel });
 
-            // Reservations Section
-            var reservationsSection = new Panel
-            {
-                Location = new Point(0, personalSection.Bottom + 270),
-                Width = mainContentPanel.Width - 60,
-                AutoSize = true
-            };
+            // Reservations section with consistent styling
+            var reservationsSection = CreateReservationsSection();
 
-            var reservationsLabel = new Label
-            {
-                Text = "Moje rezervacije",
-                Font = new Font("Arial", 18, FontStyle.Bold),
-                AutoSize = true
-            };
-
-            var reservationsPanel = new Panel
-            {
-                Location = new Point(0, reservationsLabel.Bottom + 15),
-                Width = mainContentPanel.Width - 60,
-                BackColor = Color.FromArgb(240, 240, 240),
-                Padding = new Padding(15),
-                AutoSize = true,
-            };
-
-            var reservationsFlow = new FlowLayoutPanel
-            {
-                AutoSize = true,
-                Width = reservationsPanel.Width - 30,
-                FlowDirection = FlowDirection.TopDown,
-                WrapContents = false,
-                MinimumSize = new Size(0, 70) // This ensures minimum height for the flow panel
-            };
-
-            var activeReservations = PodaciBiblioteke.Rezervacije
-                .Where(r => r.Korisnik.Id == trenutniKorisnik.Id && !r.IsComplete)
-                .ToList();
-
-            if (activeReservations.Any())
-            {
-                foreach (var rezervacija in activeReservations)
-                {
-                    reservationsFlow.Controls.Add(CreateReservationPanel(rezervacija));
-                }
-            }
-            else
-            {
-                reservationsFlow.Controls.Add(new Label
-                {
-                    Text = "Trenutno nemate aktivnih rezervacija.",
-                    Font = new Font("Arial", 12),
-                    ForeColor = Color.Gray,
-                    AutoSize = true,
-                    Margin = new Padding(10)
-                });
-            }
-
-            reservationsPanel.Controls.Add(reservationsFlow);
-            reservationsSection.Controls.AddRange(new Control[] { reservationsLabel, reservationsPanel });
-
-            // Add sections to main panel
+            // Final assembly
             profilePanel.Controls.AddRange(new Control[]
             {
         titleLabel,
@@ -1275,84 +1876,304 @@ namespace IS_za_biblioteku.Forms
             mainContentPanel.Controls.Add(profilePanel);
         }
 
+        // Helper methods
+        private Panel CreateCardPanel(int width)
+        {
+            var panel = new Panel
+            {
+                AutoSize = true,
+                Width = width,
+                BackColor = Color.White,
+                Padding = new Padding(30),
+                Margin = new Padding(0, 0, 0, 40)
+            };
+
+            return panel;
+        }
+
+        private Label CreateErrorLabel()
+        {
+            return new Label
+            {
+                ForeColor = Color.FromArgb(239, 68, 68),
+                AutoSize = true,
+                Font = RegularFont,
+                Visible = false,
+                Margin = new Padding(0)
+            };
+        }
+
+        private void AddButtonHoverEffects(Button button)
+        {
+            button.MouseEnter += (s, e) => {
+                if (button.Enabled)
+                    button.BackColor = Color.FromArgb(
+                        (int)(button.BackColor.R * 0.9),
+                        (int)(button.BackColor.G * 0.9),
+                        (int)(button.BackColor.B * 0.9));
+            };
+
+            button.MouseLeave += (s, e) => {
+                if (button.Enabled)
+                    button.BackColor = PrimaryColor;
+            };
+        }
+
+        private Panel CreateMembershipStatus(bool isActive)
+        {
+            var panel = new Panel
+            {
+                Size = new Size(300, 50),
+                Margin = new Padding(0, 0, 0, 0), // Adjust top and bottom margins
+                Location = new Point(273, 80)
+            };
+
+            var icon = new Label
+            {
+                Text = isActive ? "✓" : "!",
+                Font = new Font(RegularFont.FontFamily, 16, FontStyle.Bold),
+                ForeColor = isActive ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                AutoSize = true
+            };
+
+            var text = new Label
+            {
+                Text = isActive ? "Aktivna članarina" : "Neaktivna članarina",
+                Font = BoldFont,
+                ForeColor = isActive ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(icon.Right - 60, icon.Top + 5),
+                AutoSize = true
+            };
+
+            panel.Controls.AddRange(new Control[] { icon, text });
+            return panel;
+        }
+
+        private Panel CreateReservationsSection()
+        {
+            var section = new Panel
+            {
+                AutoSize = true,
+                Width = mainContentPanel.Width - 100,
+                Location = new Point(0, 550),
+                Margin = new Padding(0, 40, 0, 0) // Add top margin for separation from personal info
+            };
+
+            var titleLabel = new Label
+            {
+                Text = "Moje rezervacije",
+                Font = new Font(TitleFont.FontFamily, 18, FontStyle.Bold),
+                ForeColor = TextColor,
+                AutoSize = true,
+                Margin = new Padding(0, 0, 0, 25)
+            };
+
+            var reservationsPanel = CreateCardPanel(mainContentPanel.Width - 100);
+            var flowPanel = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                Width = reservationsPanel.Width - 60,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                Padding = new Padding(30, 20, 30, 20), // Add padding for content
+                MinimumSize = new Size(0, 70),
+                Location = new Point(0, titleLabel.Bottom + 20)
+            };
+
+            var activeReservations = PodaciBiblioteke.Rezervacije
+                .Where(r => r.Korisnik.Id == trenutniKorisnik.Id && !r.IsComplete)
+                .ToList();
+
+            if (activeReservations.Any())
+            {
+                foreach (var rezervacija in activeReservations)
+                {
+                    flowPanel.Controls.Add(CreateReservationPanel(rezervacija));
+                }
+            }
+            else
+            {
+                flowPanel.Controls.Add(CreateEmptyStateLabel("Trenutno nemate aktivnih rezervacija."));
+            }
+
+            reservationsPanel.Controls.Add(flowPanel);
+            section.Controls.AddRange(new Control[] { titleLabel, reservationsPanel });
+            return section;
+        }
+
         private Panel CreateReservationPanel(Rezervacija rezervacija)
         {
             var panel = new Panel
             {
-                Width = mainContentPanel.Width - 130,
+                Width = mainContentPanel.Width - 220,
                 Height = 100,
-                Margin = new Padding(30, 30, 0, 10),
+                Margin = new Padding(0, 0, 0, 15),
                 BackColor = Color.White,
-                Padding = new Padding(15)
+                Padding = new Padding(20)
+            };
+
+            // Add shadow effect
+            panel.Paint += (s, e) =>
+            {
+                var graphics = e.Graphics;
+                var shadowColor = Color.FromArgb(15, 0, 0, 0);
+                graphics.FillRectangle(new SolidBrush(shadowColor),
+                    new Rectangle(2, 2, panel.Width - 2, panel.Height - 2));
             };
 
             var titleLabel = new Label
             {
                 Text = rezervacija.Knjiga.Naslov,
-                Font = new Font("Arial", 14, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
+                Font = BoldFont,
+                ForeColor = TextColor,
+                Location = new Point(15, 15),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
             var dateLabel = new Label
             {
                 Text = $"Rezervisano: {rezervacija.DatumRezervacije:dd.MM.yyyy}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 40),
-                AutoSize = true
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(15, 45),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
             var cancelButton = new Button
             {
                 Text = "Otkaži rezervaciju",
-                Size = new Size(130, 30),
-                Location = new Point(panel.Width - 150, 35),
-                BackColor = Color.IndianRed,
+                Size = new Size(140, 35),
+                Location = new Point(panel.Width - 160, 32),
+                BackColor = Color.FromArgb(239, 68, 68), // Red color
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
+                Font = RegularFont,
                 Cursor = Cursors.Hand
+            };
+            cancelButton.FlatAppearance.BorderSize = 0;
+
+            // Custom hover effects for cancel button
+            cancelButton.MouseEnter += (s, e) => {
+                cancelButton.BackColor = Color.FromArgb(220, 38, 38); // Darker red
+            };
+            cancelButton.MouseLeave += (s, e) => {
+                cancelButton.BackColor = Color.FromArgb(239, 68, 68); // Original red
             };
 
             cancelButton.Click += (s, e) => CancelReservation(rezervacija, panel);
+
 
             panel.Controls.AddRange(new Control[] { titleLabel, dateLabel, cancelButton });
             return panel;
         }
 
-        private void CancelReservation(Rezervacija rezervacija, Panel panel)
+        private void SetupValidation(TextBox emailBox, TextBox phoneBox, Label emailError,
+            Label phoneError, Button saveButton, TableLayoutPanel table)
         {
-            if (MessageBox.Show(
-                $"Da li ste sigurni da želite otkazati rezervaciju za knjigu '{rezervacija.Knjiga.Naslov}'?",
-                "Potvrda otkazivanja",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question) == DialogResult.Yes)
+            var originalEmail = trenutniKorisnik.Email;
+            var originalPhone = trenutniKorisnik.BrojTelefona;
+            bool isEmailValid = true;
+            bool isPhoneValid = true;
+
+            void CheckChanges()
             {
-                // Store the parent control before removing the panel
-                var parentControl = panel.Parent;
-
-                // Update the reservation and book
-                rezervacija.IsComplete = true;
-                rezervacija.Knjiga.DostupnaKolicina++;
-
-                // Remove the panel
-                parentControl.Controls.Remove(panel);
-
-                // Check if there are any remaining reservation panels
-                if (!parentControl.Controls.OfType<Panel>().Any())
-                {
-                    parentControl.Controls.Add(new Label
-                    {
-                        Text = "Trenutno nemate aktivnih rezervacija.",
-                        Font = new Font("Arial", 12),
-                        ForeColor = Color.Gray,
-                        AutoSize = true,
-                        Margin = new Padding(10)
-                    });
-                }
-
-                // Refresh the view
-                ShowProfile();
+                bool hasChanges = emailBox.Text != originalEmail || phoneBox.Text != originalPhone;
+                saveButton.Enabled = hasChanges && isEmailValid && isPhoneValid;
+                saveButton.BackColor = saveButton.Enabled ? PrimaryColor : Color.FromArgb(156, 163, 175);
             }
+
+            emailBox.TextChanged += (s, e) =>
+            {
+                isEmailValid = ValidateEmail(emailBox.Text);
+                UpdateValidationUI(isEmailValid, emailBox, emailError, table, 3,
+                    "Unesite ispravnu email adresu (npr. ime@domena.com)");
+                CheckChanges();
+            };
+
+            phoneBox.TextChanged += (s, e) =>
+            {
+                isPhoneValid = ValidatePhone(phoneBox.Text);
+                UpdateValidationUI(isPhoneValid, phoneBox, phoneError, table, 5,
+                    "Unesite validan broj telefona (npr. +38712345678 ili 061234567)");
+                CheckChanges();
+            };
+
+            saveButton.Click += async (s, e) =>
+            {
+                if (isEmailValid && isPhoneValid)
+                {
+                    await SaveChanges(emailBox.Text, phoneBox.Text);
+                    originalEmail = emailBox.Text;
+                    originalPhone = phoneBox.Text;
+                    saveButton.Enabled = false;
+                    ShowSuccessMessage();
+                }
+            };
+        }
+
+        private async Task SaveChanges(string email, string phone)
+        {
+            trenutniKorisnik.Email = email;
+            trenutniKorisnik.BrojTelefona = phone;
+            // Add any additional save logic here
+            await Task.Delay(100); // Simulate save operation
+        }
+
+        private void UpdateValidationUI(bool isValid, TextBox textBox, Label errorLabel,
+            TableLayoutPanel table, int errorRow, string errorMessage)
+        {
+            if (!isValid)
+            {
+                errorLabel.Text = errorMessage;
+                errorLabel.Visible = true;
+                textBox.BackColor = Color.FromArgb(254, 242, 242);
+                table.RowStyles[errorRow] = new RowStyle(SizeType.Absolute, 20F);
+            }
+            else
+            {
+                errorLabel.Visible = false;
+                textBox.BackColor = Color.White;
+                table.RowStyles[errorRow] = new RowStyle(SizeType.Absolute, 0F);
+            }
+            table.PerformLayout();
+        }
+
+        private Label CreateEmptyStateLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                AutoSize = true,
+                Margin = new Padding(0, 20, 0, 20)
+            };
+        }
+
+        private void ShowSuccessMessage()
+        {
+            var successMessage = new Form
+            {
+                Size = new Size(300, 150),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.None,
+                BackColor = Color.White
+            };
+
+            var messageLabel = new Label
+            {
+                Text = "Promjene su uspješno sačuvane",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(34, 197, 94),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Fill
+            };
+
+            successMessage.Controls.Add(messageLabel);
+            successMessage.Show();
+            Task.Delay(1500).ContinueWith(_ => successMessage.Invoke(new Action(() => successMessage.Close())));
         }
 
         private void AddProfileRow(TableLayoutPanel panel, string label, string value, int row)
@@ -1360,81 +2181,113 @@ namespace IS_za_biblioteku.Forms
             panel.Controls.Add(new Label
             {
                 Text = label,
-                Font = new Font("Arial", 12, FontStyle.Bold),
+                Font = BoldFont,
+                ForeColor = TextColor,
                 AutoSize = true,
                 Anchor = AnchorStyles.Left | AnchorStyles.Top,
-                Margin = new Padding(0, 7, 0, 0)
+                Margin = new Padding(0, 8, 0, 0) // Adjust top margin for better spacing
             }, 0, row);
 
-            if (!string.IsNullOrEmpty(value))  // Only add value label if there's a value
+            if (!string.IsNullOrEmpty(value))
             {
                 panel.Controls.Add(new Label
                 {
                     Text = value,
-                    Font = new Font("Arial", 12),
+                    Font = RegularFont,
+                    ForeColor = Color.FromArgb(75, 85, 99),
                     AutoSize = true,
                     Anchor = AnchorStyles.Left | AnchorStyles.Top,
-                    Margin = new Padding(0, 7, 0, 0)
+                    Margin = new Padding(0, 8, 0, 0) // Match the label margin
                 }, 1, row);
             }
         }
 
-        private Panel CreateBookPanel(Knjiga knjiga)
+        private TextBox CreateStyledTextBox(string initialText)
         {
-            var panel = new Panel
+            var textBox = new TextBox
             {
-                Width = mainContentPanel.Width - 100,
-                Height = 100,
-                Margin = new Padding(0, 0, 0, 10),
-                BackColor = Color.WhiteSmoke
+                Text = initialText,
+                Font = RegularFont,
+                Width = 300,
+                Height = 35,
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(8, 5, 8, 5),
+                Margin = new Padding(0, 5, 0, 5),
+                BackColor = Color.White
             };
 
-            var titleLabel = new Label
+            // Add focus effects
+            textBox.Enter += (s, e) =>
             {
-                Text = knjiga.Naslov,
-                Font = new Font("Arial", 14, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
+                textBox.BackColor = Color.FromArgb(249, 250, 251);
             };
 
-            var authorLabel = new Label
+            textBox.Leave += (s, e) =>
             {
-                Text = $"Autor: {knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
-                Font = new Font("Arial", 12),
-                Location = new Point(10, 35),
-                AutoSize = true
+                if (textBox.BackColor != Color.FromArgb(254, 242, 242)) // Don't override error state
+                    textBox.BackColor = Color.White;
             };
 
-            var posudba = PodaciBiblioteke.Posudbe
-                .FirstOrDefault(p => p.Knjiga.Id == knjiga.Id &&
-                                   p.Korisnik.Id == trenutniKorisnik.Id &&
-                                   p.DatumVracanja > DateTime.Now);
-
-            if (posudba != null)
-            {
-                var dueDateLabel = new Label
-                {
-                    Text = $"Rok za vraćanje: {posudba.DatumVracanja:dd.MM.yyyy}",
-                    Font = new Font("Arial", 12),
-                    Location = new Point(10, 60),
-                    AutoSize = true,
-                    ForeColor = posudba.DatumVracanja < DateTime.Now ? Color.Red : Color.Black
-                };
-                panel.Controls.Add(dueDateLabel);
-            }
-
-            panel.Controls.AddRange(new Control[] { titleLabel, authorLabel });
-            return panel;
+            return textBox;
         }
 
-        private void InitializeNotifications()
+        private async void CancelReservation(Rezervacija rezervacija, Panel reservationPanel)
         {
-            var notificationTimer = new Timer
+            var result = MessageBox.Show(
+                $"Da li ste sigurni da želite otkazati rezervaciju za knjigu '{rezervacija.Knjiga.Naslov}'?",
+                "Potvrda otkazivanja",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
             {
-                Interval = 60000 // Check every minute
-            };
-            notificationTimer.Tick += CheckNotifications;
-            notificationTimer.Start();
+                var parentControl = reservationPanel.Parent;
+
+                // Update reservation and book status
+                rezervacija.IsComplete = true;
+                rezervacija.Knjiga.DostupnaKolicina++;
+
+                // Animate panel removal
+                await AnimatePanelRemoval(reservationPanel);
+                parentControl.Controls.Remove(reservationPanel);
+
+                // Check if there are any remaining reservations
+                if (!parentControl.Controls.OfType<Panel>().Any())
+                {
+                    parentControl.Controls.Add(CreateEmptyStateLabel("Trenutno nemate aktivnih rezervacija."));
+                }
+
+                // Refresh the view
+                parentControl.PerformLayout();
+
+                ShowNotification("Rezervacija otkazana.");
+            }
+        }
+
+        private async Task AnimatePanelRemoval(Panel panel)
+        {
+            for (double opacity = 1.0; opacity > 0; opacity -= 0.1)
+            {
+                panel.BackColor = Color.FromArgb(
+                    (int)(opacity * 255),
+                    panel.BackColor.R,
+                    panel.BackColor.G,
+                    panel.BackColor.B
+                );
+                await Task.Delay(20);
+            }
+        }
+
+        private bool ValidateEmail(string email)
+        {
+            string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            return System.Text.RegularExpressions.Regex.IsMatch(email, emailPattern);
+        }
+
+        private bool ValidatePhone(string phone)
+        {
+            string phonePattern = @"^(\+387|0)\d{2}[-]?\d{3}[-]?\d{3,4}$";
+            return System.Text.RegularExpressions.Regex.IsMatch(phone.Replace(" ", ""), phonePattern);
         }
 
         private void CheckNotifications(object sender, EventArgs e)
@@ -1443,24 +2296,40 @@ namespace IS_za_biblioteku.Forms
             var dueSoonBooks = PodaciBiblioteke.Posudbe
                 .Where(p => p.Korisnik.Id == trenutniKorisnik.Id &&
                             p.DatumVracanja > DateTime.Now &&
-                            p.DatumVracanja <= DateTime.Now.AddDays(3));
+                            p.DatumVracanja <= DateTime.Now.AddDays(3))
+                .ToList();
 
             foreach (var posudba in dueSoonBooks)
             {
-                ShowNotification($"Knjiga '{posudba.Knjiga.Naslov}' dospijeva za vraćanje {posudba.DatumVracanja:dd.MM.yyyy}");
+                ShowNotification(
+                    $"Knjiga '{posudba.Knjiga.Naslov}' dospijeva za vraćanje {posudba.DatumVracanja:dd.MM.yyyy}",
+                    ToolTipIcon.Warning);
             }
 
             // Check for available reserved books
             var availableReservations = PodaciBiblioteke.Rezervacije
                 .Where(r => r.Korisnik.Id == trenutniKorisnik.Id &&
                             r.Knjiga.Dostupna &&
-                            !r.Notified);
+                            !r.Notified)
+                .ToList();
 
             foreach (var rezervacija in availableReservations)
             {
-                ShowNotification($"Knjiga '{rezervacija.Knjiga.Naslov}' je sada dostupna!");
+                ShowNotification(
+                    $"Knjiga '{rezervacija.Knjiga.Naslov}' je sada dostupna!",
+                    ToolTipIcon.Info);
                 rezervacija.Notified = true;
             }
+        }
+
+        private void ShowNotification(string message, ToolTipIcon icon)
+        {
+            MessageBox.Show(
+                message,
+                "Biblioteka",
+                MessageBoxButtons.OK,
+                icon == ToolTipIcon.Warning ? MessageBoxIcon.Warning : MessageBoxIcon.Information
+            );
         }
 
         private void ShowNotification(string message)
@@ -1479,87 +2348,160 @@ namespace IS_za_biblioteku.Forms
         {
             var panel = new Panel
             {
-                Width = 250,
-                Height = 200,
-                Margin = new Padding(10),
+                Width = 280,
+                Height = 180,
+                Margin = new Padding(10, 0, 10, 0),
                 BackColor = Color.White,
-                Padding = new Padding(50), // Increased padding
+                Padding = new Padding(20),
                 Cursor = Cursors.Hand
             };
 
-            // Add shadow effect
+            // Add shadow
             panel.Paint += (s, e) =>
             {
+                var graphics = e.Graphics;
                 var shadowColor = Color.FromArgb(20, 0, 0, 0);
-                using (var brush = new SolidBrush(shadowColor))
-                {
-                    e.Graphics.FillRectangle(brush,
-                        new Rectangle(3, 3, panel.Width - 3, panel.Height - 3));
-                }
+                graphics.FillRectangle(new SolidBrush(shadowColor),
+                    new Rectangle(4, 4, panel.Width - 4, panel.Height - 4));
             };
 
+            // Book icon
+            var bookIcon = new Label
+            {
+                Text = "📚",
+                Font = new Font("Segoe UI Emoji", 24),
+                Size = new Size(40, 40),
+                Location = new Point(15, 15),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Book details
             var titleLabel = new Label
             {
                 Text = knjiga.Naslov,
-                Font = new Font("Arial", 14, FontStyle.Bold),
-                Location = new Point(35, 20), // Adjusted position
-                Width = 210, // Adjusted width to account for padding
-                Height = 50,
-                BackColor = Color.Transparent // Changed to transparent
+                Font = BoldFont,
+                ForeColor = TextColor,
+                Location = new Point(65, 15),
+                Size = new Size(180, 20),
+                BackColor = Color.Transparent
             };
 
             var authorLabel = new Label
             {
                 Text = $"{knjiga.Autor.Ime} {knjiga.Autor.Prezime}",
-                Font = new Font("Arial", 12),
-                Location = new Point(35, 75), // Adjusted position
-                AutoSize = true,
-                BackColor = Color.Transparent // Changed to transparent
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(65, titleLabel.Bottom + 5),
+                Size = new Size(180, 20),
+                BackColor = Color.Transparent
             };
 
-            var borrowCount = new Random().Next(50, 200);
-            var popularityLabel = new Label
+            var genreLabel = new Label
             {
-                Text = $"Posuđeno {borrowCount} puta",
-                Font = new Font("Arial", 11),
-                Location = new Point(35, 105), // Adjusted position
-                ForeColor = Color.FromArgb(100, 100, 100),
+                Text = knjiga.Zanr.Naziv,
+                Font = RegularFont,
+                ForeColor = PrimaryColor,
+                Location = new Point(65, authorLabel.Bottom + 5),
                 AutoSize = true,
-                BackColor = Color.Transparent // Changed to transparent
+                Padding = new Padding(6, 3, 6, 3),
+                BackColor = Color.FromArgb(255, 240, 230) // Light orange background
             };
 
-            var availabilityLabel = new Label
+            // Status indicators
+            var availableIcon = new Label
             {
-                Text = knjiga.Dostupna ? "DOSTUPNO" : "NIJE DOSTUPNO",
-                Font = new Font("Arial", 10, FontStyle.Bold),
-                Location = new Point(35, 140), // Adjusted position
-                ForeColor = knjiga.Dostupna ? Color.Green : Color.Red,
+                Text = knjiga.Dostupna ? "✓" : "×",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = knjiga.Dostupna ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(65, genreLabel.Bottom + 10),
                 AutoSize = true,
-                BackColor = Color.Transparent // Changed to transparent
+                BackColor = Color.Transparent
+            };
+
+            var availableLabel = new Label
+            {
+                Text = knjiga.Dostupna ? "Dostupna" : "Nedostupna",
+                Font = RegularFont,
+                ForeColor = knjiga.Dostupna ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68),
+                Location = new Point(85, genreLabel.Bottom + 10),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            int count = new Random().Next(20, 192);
+
+            // Times borrowed indicator
+            var borrowedCountLabel = new Label
+            {
+                Text = $"Posuđena {count} puta",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(65, availableLabel.Bottom + 10),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
             panel.Controls.AddRange(new Control[]
             {
+        bookIcon,
         titleLabel,
         authorLabel,
-        popularityLabel,
-        availabilityLabel
+        genreLabel,
+        availableIcon,
+        availableLabel,
+        borrowedCountLabel
             });
 
+            // Make sure all labels (except genreLabel) have transparent background initially
+            foreach (Control control in panel.Controls)
+            {
+                if (control != genreLabel)
+                {
+                    control.BackColor = Color.Transparent;
+                }
+            }
+
+            // Add click handler for the panel
+            EventHandler clickHandler = (s, e) =>
+            {
+                if (!trenutniKorisnik.Aktivni)
+                {
+                    MessageBox.Show("Vaša članarina nije aktivna. Molimo obnovite članarinu kako biste mogli rezervisati knjige.",
+                                  "Neaktivna članarina",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!knjiga.Dostupna)
+                {
+                    MessageBox.Show("Knjiga trenutno nije dostupna za rezervaciju.",
+                                  "Knjiga nedostupna",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Information);
+                    return;
+                }
+
+                ShowBookDetails(knjiga);
+            };
+
+            // Add click handler to panel and all child controls
+            panel.Click += clickHandler;
+            foreach (Control control in panel.Controls)
+            {
+                control.Click += clickHandler;
+                control.Cursor = Cursors.Hand;
+            }
+
             // Hover effect
-            panel.MouseEnter += (s, e) =>
-            {
-                panel.BackColor = Color.FromArgb(245, 245, 245);
-                // No need to change label backgrounds since they're transparent
+            panel.MouseEnter += (s, e) => {
+                panel.BackColor = AccentColor;
             };
 
-            panel.MouseLeave += (s, e) =>
-            {
+            panel.MouseLeave += (s, e) => {
                 panel.BackColor = Color.White;
-                // No need to change label backgrounds since they're transparent
             };
-
-            panel.Click += (s, e) => ShowBookDetails(knjiga);
 
             return panel;
         }
@@ -1569,41 +2511,81 @@ namespace IS_za_biblioteku.Forms
             var panel = new Panel
             {
                 Width = mainContentPanel.Width - 100,
-                Height = 100,
-                Margin = new Padding(0, 0, 0, 10),
-                BackColor = Color.WhiteSmoke,
-                Padding = new Padding(10)
+                Height = 130,
+                Margin = new Padding(0, 0, 0, 15),
+                BackColor = Color.White,
+                Padding = new Padding(20)
             };
 
+            // Add shadow effect
+            panel.Paint += (s, e) =>
+            {
+                var graphics = e.Graphics;
+                var shadowColor = Color.FromArgb(20, 0, 0, 0);
+                graphics.FillRectangle(new SolidBrush(shadowColor),
+                    new Rectangle(4, 4, panel.Width - 4, panel.Height - 4));
+            };
+
+            // Book icon
+            var bookIcon = new Label
+            {
+                Text = "📚",
+                Font = new Font("Segoe UI Emoji", 24),
+                Size = new Size(40, 40),
+                Location = new Point(20, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Title with larger, bold font
             var titleLabel = new Label
             {
                 Text = posudba.Knjiga.Naslov,
-                Font = new Font("Arial", 12, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
+                Font = new Font(TitleFont.FontFamily, 16, FontStyle.Bold),
+                ForeColor = TextColor,
+                Location = new Point(76, 20),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
+            // Dates with subtle color
             var datesLabel = new Label
             {
-                Text = $"Posuđeno: {posudba.DatumPosudbe:dd.MM.yyyy} - Vraćeno: {posudba.DatumVracanja:dd.MM.yyyy}",
-                Font = new Font("Arial", 10),
-                Location = new Point(10, 35),
-                AutoSize = true
+                Text = $"Posuđeno: {posudba.DatumPosudbe:dd.MM.yyyy}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(80, titleLabel.Bottom + 12),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
+            var returnedLabel = new Label
+            {
+                Text = $"Vraćeno: {posudba.DatumVracanja:dd.MM.yyyy}",
+                Font = RegularFont,
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(80, datesLabel.Bottom + 8),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            // Status indicator
             var statusLabel = new Label
             {
-                Text = posudba.DatumVracanja < DateTime.Now ? "Vraćeno" : "U toku",
-                Font = new Font("Arial", 10, FontStyle.Bold),
-                Location = new Point(10, 60),
-                ForeColor = posudba.DatumVracanja < DateTime.Now ? Color.Green : Color.Orange,
-                AutoSize = true
+                Text = "✓ Vraćeno",
+                Font = BoldFont,
+                ForeColor = Color.FromArgb(34, 197, 94), // Success green
+                Location = new Point(panel.Width - 160, 20),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
 
             panel.Controls.AddRange(new Control[]
             {
+        bookIcon,
         titleLabel,
         datesLabel,
+        returnedLabel,
         statusLabel
             });
 
@@ -1616,17 +2598,8 @@ namespace IS_za_biblioteku.Forms
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 this.Hide();
-                var loginForm = new Login();
+                var loginForm = new NewLogin();
                 loginForm.Show();
-            }
-        }
-
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            base.OnFormClosing(e);
-            if (e.CloseReason == CloseReason.UserClosing)
-            {
-                Application.Exit();
             }
         }
     }
