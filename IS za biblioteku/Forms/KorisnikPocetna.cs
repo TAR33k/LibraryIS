@@ -1518,7 +1518,37 @@ namespace IS_za_biblioteku.Forms
                 };
                 cancelButton.FlatAppearance.BorderSize = 0;
 
-                form.Controls.AddRange(new Control[] { message, okButton, cancelButton });
+                var iconBox = new PictureBox
+                {
+                    Size = new Size(32, 32),
+                    Location = new Point(20, 20),
+                    SizeMode = PictureBoxSizeMode.StretchImage
+                };
+
+                // Set the icon image based on MessageBoxIcon
+                switch (icon)
+                {
+                    case MessageBoxIcon.Information:
+                        iconBox.Image = SystemIcons.Information.ToBitmap();
+                        break;
+                    case MessageBoxIcon.Warning:
+                        iconBox.Image = SystemIcons.Warning.ToBitmap();
+                        break;
+                    case MessageBoxIcon.Error:
+                        iconBox.Image = SystemIcons.Error.ToBitmap();
+                        break;
+                    case MessageBoxIcon.Question:
+                        iconBox.Image = SystemIcons.Question.ToBitmap();
+                        break;
+                    default:
+                        iconBox.Image = null;
+                        break;
+                }
+
+                message.Location = new Point(65, 20);
+                message.Size = new Size(235, 80);
+
+                form.Controls.AddRange(new Control[] { iconBox, message, okButton, cancelButton });
                 form.AcceptButton = okButton;
                 form.CancelButton = cancelButton;
 
@@ -2233,10 +2263,11 @@ namespace IS_za_biblioteku.Forms
 
         private async void CancelReservation(Rezervacija rezervacija, Panel reservationPanel)
         {
-            var result = MessageBox.Show(
+            var result = CustomMessageBox.Show(
                 $"Da li ste sigurni da želite otkazati rezervaciju za knjigu '{rezervacija.Knjiga.Naslov}'?",
                 "Potvrda otkazivanja",
-                MessageBoxButtons.YesNo,
+                "Da",
+                "Ne",
                 MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
@@ -2594,8 +2625,13 @@ namespace IS_za_biblioteku.Forms
 
         private void OdjaviSe()
         {
-            if (MessageBox.Show("Da li ste sigurni da se želite odjaviti?", "Potvrda odjave",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            var result = CustomMessageBox.Show(
+                "Da li ste sigurni da se želite odjaviti?", "Potvrda odjave",
+                "Da",
+                "Ne",
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
             {
                 this.Hide();
                 var loginForm = new NewLogin();
