@@ -59,7 +59,7 @@ namespace IS_za_biblioteku.Forms
                 odabraniKorisnik.Prezime = tbPrezime.Text;
                 odabraniKorisnik.BrojTelefona = tbBrojTelefona.Text;
                 odabraniKorisnik.Email = tbEmail.Text;
-                odabraniKorisnik.Clanarina = vrsteClanarina.FirstOrDefault(c => c.Id == (int)cmbVrstaClanarine.SelectedValue);
+                //odabraniKorisnik.Clanarina = vrsteClanarina.FirstOrDefault(c => c.Id == (int)cmbVrstaClanarine.SelectedValue);
                 odabraniKorisnik.DatumIsteka = dateTimePicker1.Value;
 
                 // Vrati rezultat

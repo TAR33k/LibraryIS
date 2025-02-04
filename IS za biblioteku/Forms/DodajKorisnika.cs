@@ -72,7 +72,7 @@ namespace IS_za_biblioteku.Forms
                 Ime = tbIme.Text,
                 Prezime = tbPrezime.Text,
                 Email = tbEmail.Text,
-                Clanarina = (Clanarina)cmbVrstaClanarine.SelectedItem,
+                //Clanarina = (Clanarina)cmbVrstaClanarine.SelectedItem,
                 DatumIsteka = dateTimePicker1.Value
             };
             noviKorisnik.Id = PodaciBiblioteke.GetNextKorisnikId();

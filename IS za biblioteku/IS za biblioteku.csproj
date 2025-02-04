@@ -59,6 +59,7 @@
     <Compile Include="Entities\Korisnik.cs" />
     <Compile Include="Entities\Posudba.cs" />
     <Compile Include="Entities\Rezervacija.cs" />
+    <Compile Include="Entities\TipClanarine.cs" />
     <Compile Include="Entities\Zanr.cs" />
     <Compile Include="Forms\AktivnePosudbe.cs">
       <SubType>Form</SubType>
@@ -107,6 +108,12 @@
     </Compile>
     <Compile Include="Forms\KorisnikPocetna.Designer.cs">
       <DependentUpon>KorisnikPocetna.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\LibrarianDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\LibrarianDashboard.Designer.cs">
+      <DependentUpon>LibrarianDashboard.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\ListaKnjiga.cs">
       <SubType>Form</SubType>

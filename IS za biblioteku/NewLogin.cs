@@ -305,7 +305,7 @@ namespace IS_za_biblioteku
                     GlobalVariables.KorisnickoIme = unesenoKorisnickoIme;
                     if (userInfo.isLibrarian)
                     {
-                        var pocetna = new Pocetna(unesenoKorisnickoIme);
+                        var pocetna = new LibrarianDashboard(unesenoKorisnickoIme);
                         pocetna.Show();
                     }
                     else

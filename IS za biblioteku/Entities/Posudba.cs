@@ -8,6 +8,7 @@ namespace IS_za_biblioteku.Entities
 {
     public class Posudba
     {
+        public int Id { get; set; }
         public Korisnik Korisnik { get; set; }
         public Knjiga Knjiga { get; set; }
         public DateTime DatumPosudbe { get; set; }
@@ -18,6 +19,9 @@ namespace IS_za_biblioteku.Entities
             {
                 return DateTime.Now <= DatumVracanja;
             }
+
+            set { }
         }
+        public bool Vracena { get; set; }
     }
 }

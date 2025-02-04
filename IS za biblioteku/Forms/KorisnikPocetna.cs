@@ -1867,12 +1867,6 @@ namespace IS_za_biblioteku.Forms
             // Validation setup
             SetupValidation(emailBox, phoneBox, emailErrorLabel, phoneErrorLabel, saveButton, infoTable);
 
-            // Add hover effects
-            AddButtonHoverEffects(saveButton);
-
-            // Validation setup
-            SetupValidation(emailBox, phoneBox, emailErrorLabel, phoneErrorLabel, saveButton, infoTable);
-
             // Add controls to table (only once)
             infoTable.Controls.Add(emailBox, 1, 2);
             infoTable.Controls.Add(emailErrorLabel, 1, 3);
@@ -2130,25 +2124,23 @@ namespace IS_za_biblioteku.Forms
                 CheckChanges();
             };
 
-            saveButton.Click += async (s, e) =>
+            saveButton.Click += (s, e) =>
             {
                 if (isEmailValid && isPhoneValid)
                 {
-                    await SaveChanges(emailBox.Text, phoneBox.Text);
+                    SaveChanges(emailBox.Text, phoneBox.Text);
                     originalEmail = emailBox.Text;
                     originalPhone = phoneBox.Text;
                     saveButton.Enabled = false;
-                    ShowSuccessMessage();
+                    ShowNotification("Promjene su uspješno sačuvane", ToolTipIcon.Info);
                 }
             };
         }
 
-        private async Task SaveChanges(string email, string phone)
+        private void SaveChanges(string email, string phone)
         {
             trenutniKorisnik.Email = email;
             trenutniKorisnik.BrojTelefona = phone;
-            // Add any additional save logic here
-            await Task.Delay(100); // Simulate save operation
         }
 
         private void UpdateValidationUI(bool isValid, TextBox textBox, Label errorLabel,
@@ -2180,30 +2172,6 @@ namespace IS_za_biblioteku.Forms
                 AutoSize = true,
                 Margin = new Padding(0, 20, 0, 20)
             };
-        }
-
-        private void ShowSuccessMessage()
-        {
-            var successMessage = new Form
-            {
-                Size = new Size(300, 150),
-                StartPosition = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.None,
-                BackColor = Color.White
-            };
-
-            var messageLabel = new Label
-            {
-                Text = "Promjene su uspješno sačuvane",
-                Font = RegularFont,
-                ForeColor = Color.FromArgb(34, 197, 94),
-                TextAlign = ContentAlignment.MiddleCenter,
-                Dock = DockStyle.Fill
-            };
-
-            successMessage.Controls.Add(messageLabel);
-            successMessage.Show();
-            Task.Delay(1500).ContinueWith(_ => successMessage.Invoke(new Action(() => successMessage.Close())));
         }
 
         private void AddProfileRow(TableLayoutPanel panel, string label, string value, int row)
@@ -2291,7 +2259,7 @@ namespace IS_za_biblioteku.Forms
                 // Refresh the view
                 parentControl.PerformLayout();
 
-                ShowNotification("Rezervacija otkazana.");
+                ShowNotification("Rezervacija otkazana.", ToolTipIcon.Info);
             }
         }
 
@@ -2361,18 +2329,6 @@ namespace IS_za_biblioteku.Forms
                 MessageBoxButtons.OK,
                 icon == ToolTipIcon.Warning ? MessageBoxIcon.Warning : MessageBoxIcon.Information
             );
-        }
-
-        private void ShowNotification(string message)
-        {
-            var notification = new NotifyIcon
-            {
-                Visible = true,
-                Icon = SystemIcons.Information,
-                BalloonTipTitle = "Biblioteka",
-                BalloonTipText = message
-            };
-            notification.ShowBalloonTip(5000);
         }
 
         private Panel CreatePopularBookPanel(Knjiga knjiga)

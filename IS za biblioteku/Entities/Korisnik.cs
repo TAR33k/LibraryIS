@@ -14,7 +14,7 @@ namespace IS_za_biblioteku.Entities
         public string ImePrezime => $"{Ime} {Prezime}";
         public string BrojTelefona { get; set; }
         public string Email { get; set; }
-        public Clanarina Clanarina { get; set; }
+        public TipClanarine Clanarina { get; set; }
         public string VrstaClanarine
         {
             get
@@ -23,6 +23,7 @@ namespace IS_za_biblioteku.Entities
             }
         }
 
+        public DateTime? DatumUclanjenja { get; set; }
         public bool Aktivni { get; set; } 
         public DateTime? DatumIsteka { get; set; }
 

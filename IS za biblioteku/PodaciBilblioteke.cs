@@ -16,6 +16,7 @@ namespace IS_za_biblioteku
         public static List<Clanarina> Clanarine { get; set; } = new List<Clanarina>();
         public static List<Posudba> Posudbe {  get; set; }=new List<Posudba>();
         public static List<Rezervacija> Rezervacije { get; set; } = new List<Rezervacija>();
+        public static List<TipClanarine> TipoviClanarine { get; set; } = new List<TipClanarine>();
 
 
         public static void PopuniPodatke()
@@ -95,16 +96,12 @@ namespace IS_za_biblioteku
                 }
             });
 
-            // Dodavanje članarina
-            Clanarine.AddRange(new List<Clanarina>
+            TipoviClanarine.AddRange(new List<TipClanarine>
             {
-                new Clanarina { Id = 1, Naziv = "Mjesečna članarina", Cijena = 20.00 },
-                new Clanarina { Id = 2, Naziv = "Godišnja članarina", Cijena = 100.00 },
-                new Clanarina { Id = 3, Naziv = "Studentska članarina", Cijena = 10.00 },
-                new Clanarina { Id = 4, Naziv = "Porodična članarina", Cijena = 50.00 },
-                new Clanarina { Id = 5, Naziv = "Članarina za penzionere", Cijena = 10.00 }
+                new TipClanarine { Id = 1, Naziv = "Mjesečna", TrajanjeMjeseci = 1, Cijena = 45 },
+                new TipClanarine { Id = 2, Naziv = "Polugodišnja", TrajanjeMjeseci = 6, Cijena = 250 },
+                new TipClanarine { Id = 3, Naziv = "Godišnja", TrajanjeMjeseci = 12, Cijena = 450 }
             });
-
 
             // Dodavanje korisnika
             // Dodavanje korisnika sa svim podacima
@@ -117,7 +114,7 @@ namespace IS_za_biblioteku
                     Prezime = "Marković",
                     BrojTelefona = "+38761234567",
                     Email = "marko.markovic@example.com",
-                    Clanarina = Clanarine[0], // Mjesečna članarina
+                    Clanarina = TipoviClanarine[0], // Mjesečna članarina
                     Aktivni = true,
                     DatumIsteka = DateTime.Now.AddMonths(1),
                     PosudjeneKnjige = new List<Knjiga>
@@ -132,7 +129,7 @@ namespace IS_za_biblioteku
                     Prezime = "Anić",
                     BrojTelefona = "+38761345678",
                     Email = "ana.anic@example.com",
-                    Clanarina = Clanarine[1], // Godišnja članarina
+                    Clanarina = TipoviClanarine[1], // Godišnja članarina
                     Aktivni = false,
                     DatumIsteka = DateTime.Now.AddMonths(-6),
                     PosudjeneKnjige = new List<Knjiga>
@@ -147,7 +144,7 @@ namespace IS_za_biblioteku
                     Prezime = "Ivić",
                     BrojTelefona = "+38761456789",
                     Email = "ivan.ivic@example.com",
-                    Clanarina = Clanarine[2], // Studentska članarina
+                    Clanarina = TipoviClanarine[2], // Studentska članarina
                     Aktivni = true,
                     DatumIsteka = DateTime.Now.AddMonths(3),
                     PosudjeneKnjige = new List<Knjiga>
@@ -163,7 +160,7 @@ namespace IS_za_biblioteku
                     Prezime = "Lanić",
                     BrojTelefona = "+38761567890",
                     Email = "lana.lanic@example.com",
-                    Clanarina = Clanarine[3], // Porodična članarina
+                    Clanarina = TipoviClanarine[2], // Porodična članarina
                     Aktivni = true,
                     DatumIsteka = DateTime.Now.AddMonths(5),
                     PosudjeneKnjige = new List<Knjiga>()
@@ -175,7 +172,7 @@ namespace IS_za_biblioteku
                     Prezime = "Petrović",
                     BrojTelefona = "+38761678901",
                     Email = "petar.petrovic@example.com",
-                    Clanarina = Clanarine[4], // Članarina za penzionere
+                    Clanarina = TipoviClanarine[0], // Članarina za penzionere
                     Aktivni = true,
                     DatumIsteka = DateTime.Now.AddMonths(12),
                     PosudjeneKnjige = new List<Knjiga>
@@ -188,10 +185,11 @@ namespace IS_za_biblioteku
             // Dodavanje posudbi
             Posudbe.AddRange(new List<Posudba>
             {
-                new Posudba { Korisnik = Korisnici[0], Knjiga = Knjige[0], DatumPosudbe = DateTime.Now.AddDays(-2), DatumVracanja = DateTime.Now.AddDays(5) },
-                new Posudba { Korisnik = Korisnici[1], Knjiga = Knjige[1], DatumPosudbe = DateTime.Now.AddDays(-10), DatumVracanja = DateTime.Now.AddDays(-1) }, // Rok je prošao
-                new Posudba { Korisnik = Korisnici[2], Knjiga = Knjige[2], DatumPosudbe = DateTime.Now.AddDays(-7), DatumVracanja = DateTime.Now.AddDays(3) },
-                new Posudba { Korisnik = Korisnici[3], Knjiga = Knjige[3], DatumPosudbe = DateTime.Now.AddDays(-15), DatumVracanja = DateTime.Now.AddDays(-5) }  // Rok je prošao
+                new Posudba { Id = 1, Korisnik = Korisnici[0], Knjiga = Knjige[0], DatumPosudbe = DateTime.Now.AddDays(-2), DatumVracanja = DateTime.Now.AddDays(5) },
+                new Posudba { Id = 2, Korisnik = Korisnici[1], Knjiga = Knjige[1], DatumPosudbe = DateTime.Now.AddDays(-10), DatumVracanja = DateTime.Now.AddDays(-1) }, // Rok je prošao
+                new Posudba { Id = 3, Korisnik = Korisnici[2], Knjiga = Knjige[2], DatumPosudbe = DateTime.Now.AddDays(-7), DatumVracanja = DateTime.Now.AddDays(3) },
+                new Posudba { Id = 4, Korisnik = Korisnici[3], Knjiga = Knjige[3], DatumPosudbe = DateTime.Now.AddDays(-15), DatumVracanja = DateTime.Now.AddDays(-5) },
+                new Posudba { Id = 5, Korisnik = Korisnici[3], Knjiga = Knjige[2], DatumPosudbe = DateTime.Now.AddDays(-5), DatumVracanja = DateTime.Now.AddDays(6) }  // Rok je prošao
             });
 
             Rezervacije.AddRange(new List<Rezervacija>
@@ -218,17 +216,20 @@ namespace IS_za_biblioteku
             var pastDates = Enumerable.Range(1, 4).Select(x =>
                 DateTime.Now.AddDays(-random.Next(30, 365))).ToList();
 
+            int num = 6;
             foreach (var date in pastDates)
             {
                 var knjiga = Knjige[random.Next(Knjige.Count)];
                 var posudba = new Posudba
                 {
+                    Id = num,
                     Knjiga = knjiga,
                     Korisnik = Korisnici[0],
                     DatumPosudbe = date,
                     DatumVracanja = date.AddDays(14)
                 };
                 Posudbe.Add(posudba);
+                num++;
             }
         }
         public static int GetNextKnjigaId()
