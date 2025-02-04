@@ -61,48 +61,6 @@
     <Compile Include="Entities\Rezervacija.cs" />
     <Compile Include="Entities\TipClanarine.cs" />
     <Compile Include="Entities\Zanr.cs" />
-    <Compile Include="Forms\AktivnePosudbe.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\AktivnePosudbe.Designer.cs">
-      <DependentUpon>AktivnePosudbe.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\AžurirajKnjigu.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\AžurirajKnjigu.Designer.cs">
-      <DependentUpon>AžurirajKnjigu.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\AžurirajKorisnika.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\AžurirajKorisnika.Designer.cs">
-      <DependentUpon>AžurirajKorisnika.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\DodajKnjigu.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\DodajKnjigu.Designer.cs">
-      <DependentUpon>DodajKnjigu.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\DodajKorisnika.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\DodajKorisnika.Designer.cs">
-      <DependentUpon>DodajKorisnika.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\DodajPosudbu.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\DodajPosudbu.Designer.cs">
-      <DependentUpon>DodajPosudbu.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\EvidentiranjeVraćanja.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\EvidentiranjeVraćanja.Designer.cs">
-      <DependentUpon>EvidentiranjeVraćanja.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\KorisnikPocetna.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -115,73 +73,16 @@
     <Compile Include="Forms\LibrarianDashboard.Designer.cs">
       <DependentUpon>LibrarianDashboard.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\ListaKnjiga.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\ListaKnjiga.Designer.cs">
-      <DependentUpon>ListaKnjiga.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\ListaKorisnika.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\ListaKorisnika.Designer.cs">
-      <DependentUpon>ListaKorisnika.cs</DependentUpon>
-    </Compile>
     <Compile Include="GlobalVariables.cs" />
-    <Compile Include="Login.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Login.Designer.cs">
-      <DependentUpon>Login.cs</DependentUpon>
-    </Compile>
     <Compile Include="NewLogin.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="NewLogin.Designer.cs">
       <DependentUpon>NewLogin.cs</DependentUpon>
     </Compile>
-    <Compile Include="Pocetna.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Pocetna.Designer.cs">
-      <DependentUpon>Pocetna.cs</DependentUpon>
-    </Compile>
     <Compile Include="PodaciBilblioteke.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Forms\AktivnePosudbe.resx">
-      <DependentUpon>AktivnePosudbe.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\AžurirajKnjigu.resx">
-      <DependentUpon>AžurirajKnjigu.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\AžurirajKorisnika.resx">
-      <DependentUpon>AžurirajKorisnika.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\DodajKnjigu.resx">
-      <DependentUpon>DodajKnjigu.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\DodajKorisnika.resx">
-      <DependentUpon>DodajKorisnika.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\DodajPosudbu.resx">
-      <DependentUpon>DodajPosudbu.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\EvidentiranjeVraćanja.resx">
-      <DependentUpon>EvidentiranjeVraćanja.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\ListaKnjiga.resx">
-      <DependentUpon>ListaKnjiga.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\ListaKorisnika.resx">
-      <DependentUpon>ListaKorisnika.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Login.resx">
-      <DependentUpon>Login.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Pocetna.resx">
-      <DependentUpon>Pocetna.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
