@@ -78,7 +78,9 @@ namespace IS_za_biblioteku.Forms
             this.Size = new Size(1200, 820);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Text = "Biblioteka";
-            PodaciBiblioteke.PopuniPodatke();
+
+            if (PodaciBiblioteke.Knjige.Count == 0 )
+                PodaciBiblioteke.PopuniPodatke();
             trenutniKorisnik = PodaciBiblioteke.Korisnici[0];
 
             InitializeLayout();

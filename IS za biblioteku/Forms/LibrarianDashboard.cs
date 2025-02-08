@@ -2628,7 +2628,7 @@ namespace IS_za_biblioteku.Forms
                 errorMessage.AppendLine("- Telefon");
                 isValid = false;
             }
-            else if (!IsValidPhone(emailBox.Text))
+            else if (!IsValidPhone(phoneBox.Text))
             {
                 errorMessage.AppendLine("- Unesite ispravan broj telefona");
                 isValid = false;
@@ -2662,32 +2662,30 @@ namespace IS_za_biblioteku.Forms
 
         private bool IsValidPhone(string phone)
         {
-            try
-            {
-                // Remove any whitespace, dashes, or parentheses
-                string cleanPhone = new string(phone.Where(char.IsDigit).ToArray());
-
-                // Check if the cleaned number has a valid length (between 9 and 12 digits)
-                if (cleanPhone.Length < 9 || cleanPhone.Length > 12)
-                    return false;
-
-                // Check if the number starts with valid prefixes for Bosnia and Herzegovina
-                // Mobile prefixes: 060, 061, 062, 063, 064, 065, 066, 067
-                // Landline prefixes: 030-037, 049, 050-057
-                string prefix = cleanPhone.Substring(0, 3);
-                bool isValidMobilePrefix = new[] { "060", "061", "062", "063", "064", "065", "066", "067" }
-                    .Contains(prefix);
-                bool isValidLandlinePrefix = (prefix.StartsWith("03") && char.GetNumericValue(prefix[2]) <= 7) ||
-                                           prefix == "049" ||
-                                           (prefix.StartsWith("05") && char.GetNumericValue(prefix[2]) <= 7);
-
-                return isValidMobilePrefix || isValidLandlinePrefix;
-            }
-            catch
-            {
+            if (string.IsNullOrWhiteSpace(phone))
                 return false;
-            }
+
+            // Remove non-numeric characters
+            string cleanPhone = new string(phone.Where(char.IsDigit).ToArray());
+
+            // Ensure length is between 9 and 12 digits
+            if (cleanPhone.Length < 9 || cleanPhone.Length > 12)
+                return false;
+
+            // Mobile prefixes: 060, 061, 062, 063, 064, 065, 066, 067
+            string[] mobilePrefixes = { "060", "061", "062", "063", "064", "065", "066", "067" };
+
+            // Landline prefixes: 030-037, 049, 050-057
+            string[] landlinePrefixes = { "049" };
+            landlinePrefixes = landlinePrefixes.Concat(Enumerable.Range(30, 8).Select(x => x.ToString())).ToArray();
+            landlinePrefixes = landlinePrefixes.Concat(Enumerable.Range(50, 8).Select(x => x.ToString())).ToArray();
+
+            // Check for valid prefix
+            bool isValidPrefix = mobilePrefixes.Any(cleanPhone.StartsWith) || landlinePrefixes.Any(cleanPhone.StartsWith);
+
+            return isValidPrefix;
         }
+
 
         private void SaveMember(string name, string email, string phone, string membershipType, Form dialog)
         {

@@ -59,9 +59,9 @@ namespace IS_za_biblioteku
             CreateControls();
             StyleControls();
 
-            // Set default values
-            tbKorisnickoIme.Text = "korisnik1";
-            tbLozinka.Text = "korisnik1";
+            this.Text = "Biblioteka";
+            this.tbKorisnickoIme.Text = "korisnik1";
+            this.tbLozinka.Text = "korisnik1";
         }
 
         private void InitializeForm()
